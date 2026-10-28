@@ -1,1 +1,61 @@
-<p>comunidad works!</p>
+<div class="flex flex-col gap-6 pt-8 pb-24">
+  
+  <!-- Encabezado -->
+  <div class="flex justify-between items-end">
+    <h2 class="text-2xl font-bold">Comunidad</h2>
+    <a href="#" class="text-zinc-400 text-sm hover:text-white">+ Añadir amigo</a>
+  </div>
+
+  <!-- Pestañas (Tabs) -->
+  <div class="flex bg-zinc-900 rounded-xl p-1 border border-zinc-800">
+    <button class="flex-1 bg-zinc-800 text-white font-bold py-2 rounded-lg text-sm shadow-sm transition-colors">Clasificación</button>
+    <button class="flex-1 text-zinc-500 font-bold py-2 rounded-lg text-sm hover:text-zinc-300 transition-colors">Actividad</button>
+  </div>
+
+  <!-- Liga Actual -->
+  <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-3xl p-6 border border-zinc-700 shadow-lg text-center relative overflow-hidden">
+    <!-- Brillo decorativo -->
+    <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl"></div>
+    
+    <p class="text-sm font-bold text-yellow-500 uppercase tracking-widest mb-1">Liga Oro III</p>
+    <p class="text-zinc-400 text-xs mb-4">Termina en 3 días</p>
+    
+    <div class="w-20 h-20 mx-auto bg-zinc-800 border-4 border-yellow-600/50 rounded-full flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(202,138,4,0.2)] mb-2">
+      🏆
+    </div>
+  </div>
+
+  <!-- Lista de Ranking -->
+  <div class="flex flex-col gap-3">
+    <!-- Top 1 -->
+    <div class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <span class="text-yellow-500 font-bold text-lg w-4">1</span>
+        <div class="w-10 h-10 bg-zinc-700 rounded-full flex items-center justify-center text-sm font-bold">RC</div>
+        <p class="font-bold text-white">Roberto C.</p>
+      </div>
+      <p class="font-black text-zinc-300">14,250 <span class="text-xs font-normal text-zinc-500">kg</span></p>
+    </div>
+
+    <!-- Tú (Destacado) -->
+    <div class="bg-zinc-800 p-4 rounded-2xl border border-zinc-600 flex items-center justify-between shadow-lg relative transform scale-105">
+      <div class="flex items-center gap-4">
+        <span class="text-white font-bold text-lg w-4">2</span>
+        <div class="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center text-sm font-bold border border-zinc-700">AN</div>
+        <p class="font-bold text-white">Tú</p>
+      </div>
+      <p class="font-black text-white">12,100 <span class="text-xs font-normal text-zinc-400">kg</span></p>
+    </div>
+
+    <!-- Top 3 -->
+    <div class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <span class="text-amber-700 font-bold text-lg w-4">3</span>
+        <div class="w-10 h-10 bg-zinc-700 rounded-full flex items-center justify-center text-sm font-bold">MS</div>
+        <p class="font-bold text-white">Mariana S.</p>
+      </div>
+      <p class="font-black text-zinc-300">9,840 <span class="text-xs font-normal text-zinc-500">kg</span></p>
+    </div>
+  </div>
+
+</div>

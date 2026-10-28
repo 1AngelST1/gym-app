@@ -40,6 +40,68 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- MAPA MUSCULAR GAMIFICADO                   -->
+  <!-- ========================================== -->
+  <div class="bg-zinc-900 rounded-3xl p-6 border border-zinc-800 shadow-lg mt-2">
+    <div class="flex justify-between items-center mb-2">
+      <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider">Desarrollo Muscular</h3>
+      <span class="text-xs font-bold bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full border border-cyan-500/30 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+        Nivel: Avanzado
+      </span>
+    </div>
+
+    <div class="relative w-full flex justify-center py-6">
+      <!-- Figura SVG Geométrica del Cuerpo -->
+      <!-- Usamos drop-shadow y colores de Tailwind para los niveles -->
+      <svg viewBox="0 0 100 200" class="w-48 h-auto drop-shadow-2xl">
+          
+          <!-- Cabeza (Siempre base) -->
+          <circle cx="50" cy="20" r="14" class="fill-zinc-800 stroke-zinc-700 stroke-1" />
+          
+          <!-- Pecho -->
+          <path d="M 28 42 L 72 42 L 78 68 L 50 78 L 22 68 Z" 
+                [class]="obtenerClasesMusculo(niveles.pecho)" />
+          
+          <!-- Abdomen -->
+          <path d="M 33 72 L 67 72 L 62 110 L 38 110 Z" 
+                [class]="obtenerClasesMusculo(niveles.abdomen)" />
+          
+          <!-- Brazo Izquierdo -->
+          <path d="M 23 45 L 8 95 L 16 100 L 30 70 Z" 
+                [class]="obtenerClasesMusculo(niveles.brazoIzq)" />
+          
+          <!-- Brazo Derecho -->
+          <path d="M 77 45 L 92 95 L 84 100 L 70 70 Z" 
+                [class]="obtenerClasesMusculo(niveles.brazoDer)" />
+          
+          <!-- Piernas -->
+          <path d="M 38 115 L 62 115 L 68 190 L 55 190 L 50 145 L 45 190 L 32 190 Z" 
+                [class]="obtenerClasesMusculo(niveles.piernas)" />
+      </svg>
+
+      <!-- Leyenda de Niveles flotante a la derecha -->
+      <div class="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-3 bg-zinc-950/50 p-3 rounded-2xl backdrop-blur-sm border border-zinc-800/50">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]"></div>
+          <span class="text-[10px] text-zinc-300 font-bold uppercase">Diamante</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]"></div>
+          <span class="text-[10px] text-zinc-300 font-bold uppercase">Oro</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-zinc-300"></div>
+          <span class="text-[10px] text-zinc-300 font-bold uppercase">Plata</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-orange-700"></div>
+          <span class="text-[10px] text-zinc-300 font-bold uppercase">Cobre</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Historial reciente -->
   <div class="flex flex-col gap-4 mt-2">
     <h3 class="text-xl font-bold">Historial reciente</h3>
