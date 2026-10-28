@@ -1,0 +1,53 @@
+<!-- Contenedor de la pantalla con padding (espacio a los lados) -->
+<div class="flex flex-col gap-6 pt-8 pb-4">
+  
+  <!-- Título de la sección -->
+  <div class="flex justify-between items-end">
+    <h2 class="text-2xl font-bold">Tu Plan</h2>
+    <a href="#" class="text-zinc-400 text-sm hover:text-white">Más planes →</a>
+  </div>
+
+  <!-- Ciclo limpio sobre nuestro arreglo -->
+  @for (rutina of rutinas; track rutina.id) {
+    <div class="bg-zinc-800 rounded-3xl p-5 flex flex-col justify-between min-h-[300px] relative overflow-hidden shadow-lg border border-zinc-700/50">
+      
+      <!-- Etiqueta del día dinámica -->
+      <div class="self-start bg-zinc-700/60 backdrop-blur-sm text-sm px-3 py-1 rounded-lg">
+        {{ rutina.dia }}
+      </div>
+
+      <!-- Contenido de abajo dinámico -->
+      <div class="mt-auto">
+        <h3 class="text-4xl font-extrabold tracking-tight uppercase">{{ rutina.nombre }}</h3>
+        <p class="text-zinc-400 mt-1 mb-5">{{ rutina.duracion }} min · {{ rutina.ejercicios }} ejercicios</p>
+        
+        <button class="w-full bg-white text-black font-bold py-3 rounded-2xl text-lg hover:bg-zinc-200 transition-colors">
+          Ver
+        </button>
+      </div>
+    </div>
+  }
+  
+  <!-- Sección de Plantillas -->
+  <div class="mt-8 flex flex-col gap-4">
+    <h3 class="text-xl font-bold">Tus plantillas</h3>
+    
+    <!-- Item de Plantilla 1 -->
+    <div class="bg-zinc-900/50 rounded-2xl p-4 flex items-center justify-between border border-zinc-800 hover:bg-zinc-800/50 transition-colors cursor-pointer">
+      <div class="pr-4">
+        <h4 class="text-lg font-semibold">Cuello y abdomen</h4>
+        <!-- line-clamp-1 hace que el texto largo termine en "..." si no cabe -->
+        <p class="text-zinc-500 text-sm mt-1 line-clamp-1">Estiramiento Lateral De Cuello, Contracción Isométrica Lateral...</p>
+      </div>
+      
+      <!-- Botón de opciones (3 puntitos) -->
+      <button class="text-zinc-500 hover:text-white p-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+
+</div>

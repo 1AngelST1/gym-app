@@ -1,0 +1,83 @@
+<!-- Contenedor principal de progreso -->
+<div class="flex flex-col gap-6 pt-8 pb-24">
+  
+  <!-- Encabezado -->
+  <div class="flex justify-between items-end">
+    <h2 class="text-2xl font-bold">Tu Progreso</h2>
+    <select class="bg-transparent text-zinc-400 text-sm font-medium focus:outline-none cursor-pointer">
+      <option value="mes">Este mes</option>
+      <option value="semana">Esta semana</option>
+      <option value="ano">Este año</option>
+    </select>
+  </div>
+
+  <!-- Gráfica de Actividad (Simulada con Tailwind) -->
+  <div class="bg-zinc-900 rounded-3xl p-6 border border-zinc-800 shadow-lg">
+    <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-6">Volumen total (kg)</h3>
+    
+    <!-- Barras -->
+    <div class="h-32 flex items-end justify-between gap-2">
+      <div class="w-full bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-t-md h-[40%] cursor-pointer"></div>
+      <div class="w-full bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-t-md h-[60%] cursor-pointer"></div>
+      <div class="w-full bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-t-md h-[30%] cursor-pointer"></div>
+      
+      <!-- Día actual destacado en blanco -->
+      <div class="w-full bg-white rounded-t-md h-[80%] relative cursor-pointer group">
+         <!-- Tooltip (globo de texto) que aparece al pasar el cursor -->
+         <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-bold bg-white text-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+           12.5k
+         </div>
+      </div>
+      
+      <div class="w-full bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-t-md h-[50%] cursor-pointer"></div>
+      <div class="w-full bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-t-md h-[70%] cursor-pointer"></div>
+      <div class="w-full bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-t-md h-[20%] cursor-pointer"></div>
+    </div>
+    
+    <!-- Días de la semana -->
+    <div class="flex justify-between mt-3 text-xs text-zinc-500 font-bold px-1">
+      <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+    </div>
+  </div>
+
+  <!-- Historial reciente -->
+  <div class="flex flex-col gap-4 mt-2">
+    <h3 class="text-xl font-bold">Historial reciente</h3>
+    
+    <!-- Entrenamiento 1 -->
+    <div class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between hover:bg-zinc-800/80 transition-colors cursor-pointer">
+      <div class="flex items-center gap-4">
+        <!-- Ícono -->
+        <div class="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-xl border border-zinc-700">
+          💪
+        </div>
+        <div>
+          <p class="font-bold text-white text-lg">Empuje</p>
+          <p class="text-sm text-zinc-500">Ayer · 92 min</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="font-bold text-zinc-300">8,450</p>
+        <p class="text-xs text-zinc-500">kg total</p>
+      </div>
+    </div>
+
+    <!-- Entrenamiento 2 -->
+    <div class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between hover:bg-zinc-800/80 transition-colors cursor-pointer">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-xl border border-zinc-700">
+          🦵
+        </div>
+        <div>
+          <p class="font-bold text-white text-lg">Pierna</p>
+          <p class="text-sm text-zinc-500">Hace 3 días · 105 min</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="font-bold text-zinc-300">12,100</p>
+        <p class="text-xs text-zinc-500">kg total</p>
+      </div>
+    </div>
+  </div>
+
+</div>
