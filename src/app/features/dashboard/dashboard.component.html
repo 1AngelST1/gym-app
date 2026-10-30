@@ -1,92 +1,210 @@
 <!-- Contenedor de la pantalla con padding (espacio a los lados) -->
-<div class="flex flex-col gap-6 pt-8 pb-4">
+<div class="flex flex-col gap-8 pt-8 pb-4">
   
-  <!-- Título de la sección -->
-  <div class="flex justify-between items-end">
-    <h2 class="text-2xl font-bold">Tu Plan</h2>
-    <a href="#" class="text-zinc-400 text-sm hover:text-white">Más planes →</a>
+  <!-- ========================================== -->
+  <!-- SECCIÓN: HOY (Tarjetas Gigantes)           -->
+  <!-- ========================================== -->
+  <div>
+    <h2 class="text-3xl font-black mb-4">Hoy <span class="text-cyan-400 font-bold text-lg">({{ diaHoyStr }})</span></h2>
+    
+    @if (rutinasHoy.length > 0) {
+      <div class="flex flex-col gap-4">
+        @for (rutina of rutinasHoy; track rutina.id) {
+          <!-- Tarjeta Grande -->
+          <div class="bg-zinc-800 rounded-3xl p-5 flex flex-col justify-between min-h-[300px] relative overflow-hidden shadow-lg border border-zinc-700/50">
+            <div class="mt-auto">
+              <h3 class="text-5xl font-extrabold tracking-tight uppercase leading-none">{{ rutina.nombre }}</h3>
+              <p class="text-zinc-400 mt-2 mb-5 font-bold">{{ rutina.duracion }} min · {{ rutina.ejercicios }} ejercicios</p>
+              
+              <button (click)="abrirDetalle(rutina)" class="w-full bg-cyan-400 text-black font-black text-lg py-4 rounded-2xl mt-2 hover:bg-cyan-300 transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                Ver Detalles
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Mensaje si no hay rutina hoy -->
+      <div class="bg-zinc-900/50 border border-dashed border-zinc-700 rounded-3xl p-8 text-center">
+        <p class="text-zinc-500 font-bold">Día de descanso.</p>
+        <p class="text-zinc-600 text-sm mt-1">Tu cuerpo también necesita recuperarse.</p>
+      </div>
+    }
   </div>
 
-  <!-- Ciclo limpio sobre nuestro arreglo -->
-  @for (rutina of rutinas; track rutina.id) {
-    <div class="bg-zinc-800 rounded-3xl p-5 flex flex-col justify-between min-h-[300px] relative overflow-hidden shadow-lg border border-zinc-700/50">
-      
-      <!-- Etiqueta del día dinámica -->
-      <div class="self-start bg-zinc-700/60 backdrop-blur-sm text-sm px-3 py-1 rounded-lg">
-        {{ rutina.dia }}
+  <!-- ========================================== -->
+  <!-- SECCIÓN: MAÑANA (Tarjetas Medianas)        -->
+  <!-- ========================================== -->
+  <div>
+    <h3 class="text-xl font-bold mb-3 text-zinc-300">Mañana <span class="text-zinc-500 text-sm">({{ diaMananaStr }})</span></h3>
+    
+    @if (rutinasManana.length > 0) {
+      <div class="flex flex-col gap-3">
+        @for (rutina of rutinasManana; track rutina.id) {
+          <!-- Tarjeta Mediana -->
+          <div class="bg-zinc-800/80 rounded-[24px] p-5 flex flex-col relative overflow-hidden border border-zinc-700/50">
+            <div class="flex justify-between items-start mb-4">
+              <h4 class="text-2xl font-black uppercase tracking-tight w-2/3">{{ rutina.nombre }}</h4>
+              <span class="bg-zinc-900 text-zinc-400 text-xs font-bold px-2 py-1 rounded-lg">{{ rutina.duracion }} min</span>
+            </div>
+            <button (click)="abrirDetalle(rutina)" class="w-full bg-zinc-700 text-white font-bold text-sm py-3 rounded-xl hover:bg-zinc-600 transition-colors mt-auto">
+              Revisar Plan
+            </button>
+          </div>
+        }
       </div>
+    } @else {
+      <p class="text-zinc-500 text-sm font-bold bg-zinc-900/30 p-4 rounded-2xl text-center">Nada programado para mañana.</p>
+    }
+  </div>
 
-      <!-- Contenido de abajo dinámico -->
-      <div class="mt-auto">
-        <h3 class="text-4xl font-extrabold tracking-tight uppercase">{{ rutina.nombre }}</h3>
-        <p class="text-zinc-400 mt-1 mb-5">{{ rutina.duracion }} min · {{ rutina.ejercicios }} ejercicios</p>
-        
-        <button (click)="abrirDetalle(rutina)" class="w-full bg-white text-black font-bold text-lg py-3 rounded-2xl mt-2 hover:bg-zinc-200 transition-colors">
-          Ver
-        </button>
+  <!-- ========================================== -->
+  <!-- SECCIÓN: RESTO DE LA SEMANA (Lista Pequeña)-->
+  <!-- ========================================== -->
+  @if (rutinasResto.length > 0) {
+    <div>
+      <div class="flex justify-between items-end mb-4">
+        <h3 class="text-lg font-bold text-zinc-400">Tu plan semanal </h3>
+        <a routerLink="/progreso" class="text-cyan-500 text-sm font-bold hover:text-cyan-400">Ver progreso →</a>
+      </div>
+      
+      <div class="flex flex-col gap-2">
+        @for (rutina of rutinasResto; track rutina.id) {
+          <!-- Ítem Compacto de Lista -->
+          <div (click)="abrirDetalle(rutina)" class="bg-zinc-900/80 rounded-2xl p-4 flex items-center justify-between border border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+            <div class="flex items-center gap-4">
+              <!-- Círculo indicador -->
+              <div class="w-2 h-2 rounded-full bg-zinc-600"></div>
+              <div>
+                <span class="text-cyan-500/80 text-[10px] font-black uppercase tracking-widest">{{ rutina.dia }}</span>
+                <h5 class="text-base font-bold text-white leading-none uppercase mt-1">{{ rutina.nombre }}</h5>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        }
       </div>
     </div>
   }
-  
-  <!-- Sección de Plantillas -->
-  <div class="mt-8 flex flex-col gap-4">
-    <h3 class="text-xl font-bold">Tus plantillas</h3>
-    
-    <!-- Item de Plantilla 1 -->
-    <div class="bg-zinc-900/50 rounded-2xl p-4 flex items-center justify-between border border-zinc-800 hover:bg-zinc-800/50 transition-colors cursor-pointer">
-      <div class="pr-4">
-        <h4 class="text-lg font-semibold">Cuello y abdomen</h4>
-        <p class="text-zinc-500 text-sm mt-1 line-clamp-1">Estiramiento Lateral De Cuello, Contracción Isométrica Lateral...</p>
-      </div>
-      
-      <button class="text-zinc-500 hover:text-white p-2">
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
-        </svg>
-      </button>
-    </div>
-
-  </div>
 
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DE DETALLE DE RUTINA                 -->
+<!-- MODAL DE DETALLE / EDICIÓN DE RUTINA       -->
 <!-- ========================================== -->
 @if (rutinaSeleccionada) {
-  <!-- Fondo oscuro que ocupa toda la pantalla -->
   <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity flex items-center justify-center p-4" (click)="cerrarDetalle()">
     
-    <!-- Tarjeta de Detalle (El stopPropagation evita que se cierre si haces clic adentro de la tarjeta) -->
-    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 w-full max-w-sm shadow-2xl relative" (click)="$event.stopPropagation()">
+    <!-- Tarjeta del Modal (Con Scroll) -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto flex flex-col" (click)="$event.stopPropagation()">
       
-      <!-- Botón de cerrar (X) en la esquina -->
-      <button (click)="cerrarDetalle()" class="absolute top-6 right-6 text-zinc-500 hover:text-white bg-zinc-800 rounded-full p-2 transition-colors">
+      <!-- Botón X (Cerrar) -->
+      <button (click)="cerrarDetalle()" class="absolute top-6 right-6 text-zinc-500 hover:text-white bg-zinc-800 rounded-full p-2 z-10 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
 
-      <!-- Encabezado dinámico -->
-      <div class="inline-block bg-cyan-500/20 text-cyan-400 text-xs font-bold px-3 py-1 rounded-lg mb-4">
-        {{ rutinaSeleccionada.dia }}
-      </div>
-      <h2 class="text-4xl font-black text-white uppercase mb-2">{{ rutinaSeleccionada.nombre }}</h2>
-      
-      <!-- Estadísticas en cuadritos -->
-      <div class="flex gap-4 mb-8 mt-6">
-        <div class="bg-zinc-800/50 rounded-2xl p-4 flex-1 text-center border border-zinc-700/50">
-          <p class="text-3xl font-black text-white">{{ rutinaSeleccionada.duracion }}</p>
-          <p class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mt-1">Minutos</p>
+      @if (!modoEdicion) {
+        <!-- ===================================== -->
+        <!-- MODO LECTURA (Desglose de Ejercicios) -->
+        <!-- ===================================== -->
+        <div class="flex justify-between items-center mb-4 mt-2">
+          <div class="inline-block bg-cyan-500/20 text-cyan-400 text-xs font-bold px-3 py-1 rounded-lg">
+            {{ rutinaSeleccionada.dia }}
+          </div>
+          <!-- Botón de Editar (Lápiz) -->
+          <button (click)="activarEdicion()" class="text-zinc-400 hover:text-cyan-400 flex items-center gap-1 text-sm font-bold transition-colors mr-10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            Editar
+          </button>
         </div>
-        <div class="bg-zinc-800/50 rounded-2xl p-4 flex-1 text-center border border-zinc-700/50">
-          <p class="text-3xl font-black text-white">{{ rutinaSeleccionada.ejercicios }}</p>
-          <p class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mt-1">Ejercicios</p>
-        </div>
-      </div>
+        
+        <h2 class="text-4xl font-black text-white uppercase mb-2">{{ rutinaSeleccionada.nombre }}</h2>
+        <p class="text-zinc-400 text-sm font-bold mb-6">{{ rutinaSeleccionada.ejercicios }} Ejercicios, {{ rutinaSeleccionada.duracion }} min</p>
+        
+        <!-- Lista de Ejercicios Renderizada -->
+        @if (rutinaSeleccionada.ejerciciosLista && rutinaSeleccionada.ejerciciosLista.length > 0) {
+          <div class="flex flex-col gap-3 mb-6">
+            @for (ej of rutinaSeleccionada.ejerciciosLista; track $index) {
+              <div class="bg-zinc-800/50 p-4 rounded-2xl flex items-center gap-4 border border-zinc-700/50">
+                <!-- Icono de pesas miniatura -->
+                <div class="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800">
+                  <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+                </div>
+                <div>
+                  <p class="text-[10px] text-cyan-400 font-black tracking-widest uppercase mb-1">{{ ej.sets }} sets x {{ ej.reps }} reps</p>
+                  <p class="text-white font-bold text-sm leading-tight">{{ ej.nombre }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="bg-zinc-800/50 p-6 rounded-2xl text-center mb-6 border border-zinc-700/50">
+            <p class="text-zinc-500 text-sm font-bold">Esta rutina aún no tiene ejercicios registrados.</p>
+          </div>
+        }
 
-      <!-- Botón de Acción Principal -->
-      <button class="w-full bg-cyan-400 text-black font-black text-lg py-4 rounded-2xl hover:bg-cyan-300 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-        Empezar Entrenamiento
-      </button>
+        <button class="w-full bg-cyan-400 text-black font-black text-lg py-4 rounded-2xl hover:bg-cyan-300 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.4)] mt-auto flex justify-center items-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+          Empezar Entrenamiento
+        </button>
+
+      } @else {
+        <!-- ===================================== -->
+        <!-- MODO EDICIÓN                          -->
+        <!-- ===================================== -->
+        <div class="flex items-center justify-between mb-6 mt-2">
+          <h3 class="text-2xl font-black text-white uppercase tracking-tight">Editar Rutina</h3>
+          <button (click)="cancelarEdicion()" class="text-zinc-400 hover:text-white text-sm font-bold mr-10">Cancelar</button>
+        </div>
+        
+        <div class="flex flex-col gap-4">
+          <input type="text" [(ngModel)]="rutinaEnEdicion.nombre" class="bg-zinc-800/80 border border-zinc-700 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-cyan-500 uppercase">
+          
+          <div class="grid grid-cols-2 gap-4">
+            <select [(ngModel)]="rutinaEnEdicion.dia" class="bg-zinc-800/80 border border-zinc-700 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-cyan-500">
+              <option value="Lunes">Lunes</option><option value="Martes">Martes</option><option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option><option value="Viernes">Viernes</option><option value="Sábado">Sábado</option><option value="Domingo">Domingo</option>
+            </select>
+            <input type="number" [(ngModel)]="rutinaEnEdicion.duracion" placeholder="Min" class="bg-zinc-800/80 border border-zinc-700 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-cyan-500">
+          </div>
+
+          <div class="mt-2 bg-zinc-950/50 p-4 rounded-3xl border border-zinc-800">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Ejercicios</h4>
+              <button (click)="agregarEjercicioEdit()" class="text-cyan-400 text-xs font-black bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20">+ AÑADIR</button>
+            </div>
+            
+            <div class="flex flex-col gap-3">
+              @for (ejercicio of rutinaEnEdicion.ejerciciosLista; track $index) {
+                <div class="bg-zinc-800 p-4 rounded-2xl border border-zinc-700 relative">
+                  <button (click)="eliminarEjercicioEdit($index)" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-lg">✕</button>
+                  <input type="text" [(ngModel)]="ejercicio.nombre" placeholder="Nombre (Ej. Press)" class="w-full bg-transparent text-white font-bold mb-3 focus:outline-none placeholder:text-zinc-500 text-sm">
+                  <div class="flex gap-3">
+                    <div class="flex-1 flex items-center bg-zinc-900 rounded-xl p-2 border border-zinc-700/50">
+                      <span class="text-[10px] text-zinc-500 font-bold ml-1 mr-2 tracking-widest">SETS</span>
+                      <input type="number" [(ngModel)]="ejercicio.sets" class="w-full bg-transparent text-white text-center font-bold focus:outline-none">
+                    </div>
+                    <div class="flex-1 flex items-center bg-zinc-900 rounded-xl p-2 border border-zinc-700/50">
+                      <span class="text-[10px] text-zinc-500 font-bold ml-1 mr-2 tracking-widest">REPS</span>
+                      <input type="number" [(ngModel)]="ejercicio.reps" class="w-full bg-transparent text-white text-center font-bold focus:outline-none">
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          
+          <div class="flex gap-4 mt-2">
+            <!-- Botón de Eliminar (Icono de Basurero) -->
+            <button (click)="eliminarRutinaCompleta()" class="bg-red-500/10 text-red-500 font-bold p-4 rounded-2xl hover:bg-red-500/20 border border-red-500/20 transition-colors flex items-center justify-center shrink-0">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+            
+            <button (click)="guardarEdicion()" class="flex-1 bg-cyan-400 text-black font-extrabold text-lg py-4 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:bg-cyan-300">
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
+      }
     </div>
   </div>
 }
