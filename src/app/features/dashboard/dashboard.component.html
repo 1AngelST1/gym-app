@@ -21,7 +21,7 @@
         <h3 class="text-4xl font-extrabold tracking-tight uppercase">{{ rutina.nombre }}</h3>
         <p class="text-zinc-400 mt-1 mb-5">{{ rutina.duracion }} min · {{ rutina.ejercicios }} ejercicios</p>
         
-        <button class="w-full bg-white text-black font-bold py-3 rounded-2xl text-lg hover:bg-zinc-200 transition-colors">
+        <button (click)="abrirDetalle(rutina)" class="w-full bg-white text-black font-bold text-lg py-3 rounded-2xl mt-2 hover:bg-zinc-200 transition-colors">
           Ver
         </button>
       </div>
@@ -36,11 +36,9 @@
     <div class="bg-zinc-900/50 rounded-2xl p-4 flex items-center justify-between border border-zinc-800 hover:bg-zinc-800/50 transition-colors cursor-pointer">
       <div class="pr-4">
         <h4 class="text-lg font-semibold">Cuello y abdomen</h4>
-        <!-- line-clamp-1 hace que el texto largo termine en "..." si no cabe -->
         <p class="text-zinc-500 text-sm mt-1 line-clamp-1">Estiramiento Lateral De Cuello, Contracción Isométrica Lateral...</p>
       </div>
       
-      <!-- Botón de opciones (3 puntitos) -->
       <button class="text-zinc-500 hover:text-white p-2">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
@@ -51,3 +49,44 @@
   </div>
 
 </div>
+
+<!-- ========================================== -->
+<!-- MODAL DE DETALLE DE RUTINA                 -->
+<!-- ========================================== -->
+@if (rutinaSeleccionada) {
+  <!-- Fondo oscuro que ocupa toda la pantalla -->
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity flex items-center justify-center p-4" (click)="cerrarDetalle()">
+    
+    <!-- Tarjeta de Detalle (El stopPropagation evita que se cierre si haces clic adentro de la tarjeta) -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 w-full max-w-sm shadow-2xl relative" (click)="$event.stopPropagation()">
+      
+      <!-- Botón de cerrar (X) en la esquina -->
+      <button (click)="cerrarDetalle()" class="absolute top-6 right-6 text-zinc-500 hover:text-white bg-zinc-800 rounded-full p-2 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <!-- Encabezado dinámico -->
+      <div class="inline-block bg-cyan-500/20 text-cyan-400 text-xs font-bold px-3 py-1 rounded-lg mb-4">
+        {{ rutinaSeleccionada.dia }}
+      </div>
+      <h2 class="text-4xl font-black text-white uppercase mb-2">{{ rutinaSeleccionada.nombre }}</h2>
+      
+      <!-- Estadísticas en cuadritos -->
+      <div class="flex gap-4 mb-8 mt-6">
+        <div class="bg-zinc-800/50 rounded-2xl p-4 flex-1 text-center border border-zinc-700/50">
+          <p class="text-3xl font-black text-white">{{ rutinaSeleccionada.duracion }}</p>
+          <p class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mt-1">Minutos</p>
+        </div>
+        <div class="bg-zinc-800/50 rounded-2xl p-4 flex-1 text-center border border-zinc-700/50">
+          <p class="text-3xl font-black text-white">{{ rutinaSeleccionada.ejercicios }}</p>
+          <p class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mt-1">Ejercicios</p>
+        </div>
+      </div>
+
+      <!-- Botón de Acción Principal -->
+      <button class="w-full bg-cyan-400 text-black font-black text-lg py-4 rounded-2xl hover:bg-cyan-300 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+        Empezar Entrenamiento
+      </button>
+    </div>
+  </div>
+}

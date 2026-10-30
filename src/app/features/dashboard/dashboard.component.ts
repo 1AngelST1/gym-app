@@ -10,20 +10,28 @@ export class DashboardComponent {
   private firestore: Firestore = inject(Firestore);
   
   rutinas: any[] = [];
+  
+  // Variable para guardar la rutina que el usuario quiere ver en el modal
+  rutinaSeleccionada: any = null;
 
   constructor() {
     const rutinasCollection = collection(this.firestore, 'rutinas');
     
-    // Escuchamos a Firebase directamente desde el constructor para que Angular no se queje
     onSnapshot(rutinasCollection, (snapshot) => {
       const dataTemporal: any[] = [];
-      
       snapshot.forEach((doc) => {
         dataTemporal.push({ id: doc.id, ...doc.data() });
       });
-      
       this.rutinas = dataTemporal;
-      console.log("✅ Datos limpios y directos sin warnings:", this.rutinas);
     });
+  }
+
+  // Funciones mágicas para el modal
+  abrirDetalle(rutina: any) {
+    this.rutinaSeleccionada = rutina;
+  }
+
+  cerrarDetalle() {
+    this.rutinaSeleccionada = null;
   }
 }
