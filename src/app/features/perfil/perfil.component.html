@@ -1,7 +1,6 @@
 <!-- Contenedor principal del perfil -->
 <div class="flex flex-col gap-6 pt-8 pb-24">
   
-  <!-- Encabezado con ícono de engrane -->
   <div class="flex justify-between items-center">
     <h2 class="text-2xl font-bold">Tu Perfil</h2>
     <button class="text-zinc-400 hover:text-white p-2">
@@ -12,9 +11,7 @@
     </button>
   </div>
 
-  <!-- Tarjeta de Usuario Principal -->
   <div class="bg-zinc-900 rounded-3xl p-6 flex items-center gap-5 border border-zinc-800 shadow-lg">
-    <!-- Círculo del Avatar (puedes cambiar las iniciales) -->
     <div class="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center text-3xl font-bold border-2 border-zinc-700">
       AN
     </div>
@@ -24,32 +21,27 @@
     </div>
   </div>
 
-<!-- Cuadrícula de Estadísticas Rápidas -->
   <div class="grid grid-cols-2 gap-4 mt-2">
-    <!-- Tarjeta 1: Total de rutinas creadas -->
     <div class="bg-zinc-900/50 p-5 rounded-2xl border border-zinc-800 text-center flex flex-col justify-center">
       <p class="text-4xl font-black text-white">{{ totalEntrenamientos }}</p>
       <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mt-2">Entrenamientos</p>
     </div>
-    <!-- Tarjeta 2: Sumatoria de minutos -->
     <div class="bg-zinc-900/50 p-5 rounded-2xl border border-zinc-800 text-center flex flex-col justify-center">
       <p class="text-4xl font-black text-white">{{ totalMinutos }}</p>
       <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mt-2">Minutos Totales</p>
     </div>
   </div>
   
-  <!-- Menú de Opciones -->
   <div class="flex flex-col gap-3 mt-6">
     <h4 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Ajustes</h4>
     
-    <button class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center hover:bg-zinc-800 transition-colors">
+    <button (click)="abrirHistorial()" class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center hover:bg-zinc-800 transition-colors">
       <span class="font-semibold text-zinc-200">Historial de rutinas</span>
       <span class="text-zinc-600">→</span>
     </button>
     
-    <button class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center hover:bg-zinc-800 transition-colors">
-      <span class="font-semibold text-zinc-200">Metas y medidas</span>
-      <span class="text-zinc-600">→</span>
+    <button class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center hover:bg-zinc-800 transition-colors opacity-50 cursor-not-allowed">
+      <span class="font-semibold text-zinc-400">Metas y medidas <span class="text-[10px] bg-zinc-800 px-2 py-1 rounded-md ml-2 uppercase font-black tracking-widest">Próximamente</span></span>
     </button>
 
     <button class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center hover:bg-zinc-800 transition-colors mt-4">
@@ -57,5 +49,125 @@
       <span class="text-zinc-600">→</span>
     </button>
   </div>
-
 </div>
+
+<!-- ========================================== -->
+<!-- MODAL DE HISTORIAL DE RUTINAS              -->
+<!-- ========================================== -->
+@if (mostrarModalHistorial) {
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="cerrarHistorial()">
+    
+    <div class="bg-zinc-900 border border-zinc-800 rounded-t-[36px] sm:rounded-[36px] p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar flex flex-col" (click)="$event.stopPropagation()">
+      
+      <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-6 shrink-0"></div>
+
+      <button (click)="cerrarHistorial()" class="absolute top-6 right-6 text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-700 rounded-full p-2 z-10 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      @if (!sesionSeleccionada) {
+        <!-- ===================================== -->
+        <!-- VISTA 1: LISTA DEL HISTORIAL          -->
+        <!-- ===================================== -->
+        <h3 class="text-3xl font-black text-white uppercase tracking-tight mb-6">Tu Historial</h3>
+
+        <div class="flex gap-2 mb-6 bg-zinc-950/50 p-1 rounded-xl border border-zinc-800">
+          <button (click)="aplicarFiltro('semana')" class="flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-colors"
+            [class.bg-cyan-500]="filtroActivo === 'semana'" [class.text-black]="filtroActivo === 'semana'"
+            [class.text-zinc-500]="filtroActivo !== 'semana'" [class.hover:text-zinc-300]="filtroActivo !== 'semana'">
+            7 Días
+          </button>
+          <button (click)="aplicarFiltro('mes')" class="flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-colors"
+            [class.bg-cyan-500]="filtroActivo === 'mes'" [class.text-black]="filtroActivo === 'mes'"
+            [class.text-zinc-500]="filtroActivo !== 'mes'" [class.hover:text-zinc-300]="filtroActivo !== 'mes'">
+            Mes
+          </button>
+          <button (click)="aplicarFiltro('ano')" class="flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-colors hidden sm:block"
+            [class.bg-cyan-500]="filtroActivo === 'ano'" [class.text-black]="filtroActivo === 'ano'"
+            [class.text-zinc-500]="filtroActivo !== 'ano'" [class.hover:text-zinc-300]="filtroActivo !== 'ano'">
+            Año
+          </button>
+          <button (click)="aplicarFiltro('todo')" class="flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-colors"
+            [class.bg-cyan-500]="filtroActivo === 'todo'" [class.text-black]="filtroActivo === 'todo'"
+            [class.text-zinc-500]="filtroActivo !== 'todo'" [class.hover:text-zinc-300]="filtroActivo !== 'todo'">
+            Todo
+          </button>
+        </div>
+
+        @if (historialVisualizado.length > 0) {
+          <div class="flex flex-col gap-3">
+            @for (sesion of historialVisualizado; track sesion.id) {
+              <!-- NUEVO: Agregado (click) y cursor-pointer a la tarjeta -->
+              <div (click)="verDetallesSesion(sesion)" class="bg-zinc-800/40 p-4 rounded-2xl flex items-center justify-between border border-zinc-800 cursor-pointer hover:bg-zinc-800/80 transition-colors">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center shrink-0 border border-zinc-700/50">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  </div>
+                  <div>
+                    <h4 class="text-white font-bold text-sm uppercase">{{ sesion.rutinaNombre }}</h4>
+                    <p class="text-zinc-400 text-xs font-medium">{{ sesion.fechaCorta }} • {{ sesion.duracionFormateada || (sesion.duracionSegundos / 60 | number:'1.0-0') + ' min' }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-cyan-400 font-black text-sm">{{ sesion.totalSets }}</p>
+                  <p class="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Sets</p>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="bg-zinc-950/50 border border-dashed border-zinc-800 rounded-3xl p-8 text-center mt-4 mb-8">
+            <p class="text-zinc-500 font-bold text-sm">No hay entrenamientos en este periodo.</p>
+          </div>
+        }
+
+      } @else {
+        <!-- ===================================== -->
+        <!-- VISTA 2: DETALLE DEL ENTRENAMIENTO    -->
+        <!-- ===================================== -->
+        <div class="flex items-center mb-6">
+          <button (click)="volverAListaHistorial()" class="text-zinc-400 hover:text-cyan-400 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider transition-colors bg-zinc-800/50 px-3 py-1.5 rounded-xl border border-zinc-700/50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            Volver
+          </button>
+        </div>
+
+        <h3 class="text-3xl font-black text-white uppercase tracking-tight mb-2">{{ sesionSeleccionada.rutinaNombre }}</h3>
+        <p class="text-zinc-400 text-xs font-black uppercase tracking-widest mb-6 border-b border-zinc-800 pb-4">
+          {{ sesionSeleccionada.fechaCorta }} • {{ sesionSeleccionada.horaInicio }} a {{ sesionSeleccionada.horaFin }}
+        </p>
+
+        <div class="flex flex-col gap-6 mb-4">
+          @for (ejercicio of sesionSeleccionada.ejercicios; track $index) {
+            <div>
+              <h4 class="text-sm font-bold text-white uppercase mb-3 text-cyan-400">{{ ejercicio.nombre }}</h4>
+              
+              <div class="bg-zinc-950/50 rounded-2xl border border-zinc-800 overflow-hidden">
+                <!-- Encabezado de tabla interna -->
+                <div class="grid grid-cols-3 bg-zinc-900/80 p-2 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">
+                  <div>Set</div>
+                  <div>KG</div>
+                  <div>Reps</div>
+                </div>
+                
+                <!-- Filas de sets -->
+                <div class="flex flex-col">
+                  @for (set of ejercicio.setsActivos; track $index; let setIndex = $index) {
+                    <!-- Solo mostramos los sets que realmente completó -->
+                    @if (set.completado) {
+                      <div class="grid grid-cols-3 p-3 text-center border-b border-zinc-800/50 last:border-0 items-center">
+                        <div class="text-zinc-400 font-bold text-xs">{{ setIndex + 1 }}</div>
+                        <div class="text-white font-bold text-sm bg-zinc-900 mx-2 py-1 rounded-lg border border-zinc-700">{{ set.kg }}</div>
+                        <div class="text-white font-bold text-sm">{{ set.reps }}</div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}
