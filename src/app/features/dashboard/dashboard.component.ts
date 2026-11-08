@@ -1,8 +1,10 @@
-import { Component, inject, Injector, runInInjectionContext, OnDestroy } from '@angular/core';
+import { Component, inject, Injector, runInInjectionContext, NgZone, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
-import { Firestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from '@angular/fire/firestore';
+import { Firestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, where, getDocs } from '@angular/fire/firestore';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,7 +14,10 @@ import { RouterLink } from '@angular/router';
 })
 export class DashboardComponent implements OnDestroy {
   private firestore: Firestore = inject(Firestore);
-  private injector = inject(Injector);
+  private injector = inject(Injector); 
+  private authService = inject(AuthService);
+  private zone = inject(NgZone); 
+  private auth: Auth = inject(Auth); 
   
   private rutinasCol = collection(this.firestore, 'rutinas');
   private historialCol = collection(this.firestore, 'historial');
@@ -29,6 +34,12 @@ export class DashboardComponent implements OnDestroy {
   diaHoyStr = '';
   diaMananaStr = '';
 
+  opcionesMusculos = [
+    'Cuello', 'Trapecios', 'Hombros', 'Pecho', 'Dorsales', 
+    'Lumbar', 'Bíceps', 'Tríceps', 'Antebrazos', 'Abdomen', 
+    'Oblicuos', 'Glúteos', 'Cuádriceps', 'Isquios', 'Aductores', 'Pantorrillas'
+  ];
+
   rutinaSeleccionada: any = null;
   modoEdicion = false;
   rutinaEnEdicion: any = null;
@@ -44,42 +55,66 @@ export class DashboardComponent implements OnDestroy {
   mostrarResumen = false;
   resumenDatos: any = null;
 
-  // Control de notificaciones visuales y modales de confirmación
   mensajeAlerta: string | null = null;
   mostrarModalConfirmacion = false;
   tituloConfirmacion = '';
   mensajeConfirmacion = '';
   accionConfirmacion: 'cancelar' | 'pausar' | 'eliminarRutina' | null = null;
   
-  // Guardamos temporalmente la sesión incompleta detectada
   sesionIncompletaPendiente: any = null;
 
   constructor() {
     this.calcularDias();
-
     const hoyCorta = new Date().toLocaleDateString('es-MX');
+    
+    onAuthStateChanged(this.auth, (user) => {
+      if (user) {
+        const userId = user.uid;
 
-    this.listenerRutinas = onSnapshot(this.rutinasCol, (snapshot) => {
-      this.rutinasHoy = [];
-      this.rutinasManana = [];
-      this.rutinasResto = [];
+        const consultaRutinas = query(this.rutinasCol, where('userId', '==', userId));
+        this.listenerRutinas = onSnapshot(consultaRutinas, 
+          (snapshot) => {
+            this.zone.run(() => {
+              this.rutinasHoy = [];
+              this.rutinasManana = [];
+              this.rutinasResto = [];
 
-      snapshot.forEach((documento) => {
-        const rutina: any = { id: documento.id, ...documento.data() };
-        if (rutina.dia === this.diaHoyStr) this.rutinasHoy.push(rutina);
-        else if (rutina.dia === this.diaMananaStr) this.rutinasManana.push(rutina);
-        else this.rutinasResto.push(rutina);
-      });
-    });
+              snapshot.forEach((documento) => {
+                const rutina: any = { id: documento.id, ...documento.data() };
+                if (rutina.dia === this.diaHoyStr) this.rutinasHoy.push(rutina);
+                else if (rutina.dia === this.diaMananaStr) this.rutinasManana.push(rutina);
+                else this.rutinasResto.push(rutina);
+              });
+            });
+          },
+          (error) => { console.log('Sincronización pausada.'); }
+        );
 
-    this.listenerHistorial = onSnapshot(this.historialCol, (snapshot) => {
-      this.historialHoy = [];
-      snapshot.forEach((documento) => {
-        const datos = documento.data();
-        if (datos['fechaCorta'] === hoyCorta) {
-          this.historialHoy.push({ id: documento.id, ...datos });
-        }
-      });
+        const consultaHistorial = query(this.historialCol, where('userId', '==', userId));
+        this.listenerHistorial = onSnapshot(consultaHistorial, 
+          (snapshot) => {
+            this.zone.run(() => {
+              this.historialHoy = [];
+              snapshot.forEach((documento) => {
+                const datos = documento.data();
+                if (datos['fechaCorta'] === hoyCorta) {
+                  this.historialHoy.push({ id: documento.id, ...datos });
+                }
+              });
+            });
+          },
+          (error) => { console.log('Historial pausado.'); }
+        );
+      } else {
+        this.zone.run(() => {
+          this.rutinasHoy = [];
+          this.rutinasManana = [];
+          this.rutinasResto = [];
+          this.historialHoy = [];
+        });
+        if (this.listenerRutinas) this.listenerRutinas();
+        if (this.listenerHistorial) this.listenerHistorial();
+      }
     });
   }
 
@@ -87,6 +122,10 @@ export class DashboardComponent implements OnDestroy {
     if (this.listenerRutinas) this.listenerRutinas();
     if (this.listenerHistorial) this.listenerHistorial();
     if (this.timerInterval) clearInterval(this.timerInterval);
+  }
+
+  generarId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
   }
 
   calcularDias() {
@@ -111,6 +150,10 @@ export class DashboardComponent implements OnDestroy {
     this.modoEdicion = true;
     this.rutinaEnEdicion = JSON.parse(JSON.stringify(this.rutinaSeleccionada));
     if (!this.rutinaEnEdicion.ejerciciosLista) this.rutinaEnEdicion.ejerciciosLista = [];
+    
+    this.rutinaEnEdicion.ejerciciosLista.forEach((ej: any) => {
+      if (!ej.id) ej.id = this.generarId();
+    });
   }
 
   cancelarEdicion() {
@@ -118,7 +161,13 @@ export class DashboardComponent implements OnDestroy {
   }
 
   agregarEjercicioEdit() {
-    this.rutinaEnEdicion.ejerciciosLista.push({ nombre: '', sets: null, reps: null });
+    this.rutinaEnEdicion.ejerciciosLista.push({ 
+      id: this.generarId(), 
+      nombre: '', 
+      musculoAsignado: '', 
+      sets: null, 
+      reps: null 
+    });
   }
 
   eliminarEjercicioEdit(index: number) {
@@ -133,6 +182,10 @@ export class DashboardComponent implements OnDestroy {
   }
 
   async guardarEdicion() {
+    this.rutinaEnEdicion.ejerciciosLista = this.rutinaEnEdicion.ejerciciosLista.filter((ej: any) => {
+      return ej.nombre.trim() !== '' || ej.musculoAsignado !== '' || ej.sets > 0 || ej.reps > 0;
+    });
+
     if (!this.rutinaEnEdicion.nombre || this.rutinaEnEdicion.nombre.trim() === '') {
       this.mostrarAlerta('Ponle un nombre a tu rutina antes de guardar.');
       return;
@@ -145,6 +198,10 @@ export class DashboardComponent implements OnDestroy {
     for (let ej of this.rutinaEnEdicion.ejerciciosLista) {
       if (!ej.nombre || ej.nombre.trim() === '') {
         this.mostrarAlerta('Hay un ejercicio sin nombre.');
+        return;
+      }
+      if (!ej.musculoAsignado) {
+        this.mostrarAlerta(`Falta asignar músculo a: ${ej.nombre}`);
         return;
       }
       if (!ej.sets || ej.sets <= 0 || !ej.reps || ej.reps <= 0) {
@@ -176,7 +233,7 @@ export class DashboardComponent implements OnDestroy {
     this.mostrarModalConfirmacion = true;
   }
 
-  empezarEntrenamiento() {
+  async empezarEntrenamiento() {
     const sesionIncompleta = this.historialHoy.find(h => 
       h.rutinaNombre === this.rutinaSeleccionada.nombre && h.estado === 'incompleto'
     );
@@ -185,21 +242,24 @@ export class DashboardComponent implements OnDestroy {
       this.sesionIncompletaPendiente = sesionIncompleta;
       this.tituloConfirmacion = 'Entrenamiento en Pausa';
       this.mensajeConfirmacion = 'Tienes una sesión pausada hoy. ¿Deseas retomarla?';
-      this.accionConfirmacion = 'pausar'; // O manejamos flujo de retomar
+      this.accionConfirmacion = 'pausar'; 
       this.mostrarModalConfirmacion = true;
       return;
     }
-    this.empezarDeCero();
+    await this.empezarDeCero();
   }
 
-  empezarDeCero() {
+  async empezarDeCero() {
     this.historialActivoId = null; 
     this.rutinaActiva = JSON.parse(JSON.stringify(this.rutinaSeleccionada)); 
+    // Aseguramos que el ID global de la rutina viaje al entorno activo
+    this.rutinaActiva.id = this.rutinaSeleccionada.id; 
     
     this.rutinaActiva.ejerciciosLista = this.rutinaActiva.ejerciciosLista.map((ej: any) => {
+      if (!ej.id) ej.id = this.generarId(); 
       const filasDeSets = [];
       const totalSets = ej.sets || 1; 
-      for(let i = 0; i < totalSets; i++) filasDeSets.push({ kg: 0, reps: ej.reps, completado: false });
+      for(let i = 0; i < totalSets; i++) filasDeSets.push({ kg: 0, reps: ej.reps, completado: false, previoString: '-' });
       return { ...ej, setsActivos: filasDeSets }; 
     });
 
@@ -209,17 +269,77 @@ export class DashboardComponent implements OnDestroy {
     this.horaInicioEntrenamiento = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     this.timerInterval = setInterval(() => { this.tiempoSegundos++; }, 1000);
+
+    await this.cargarPrevios();
   }
 
-  retomarSesion(id: string, datosGuardados: any) {
+  async retomarSesion(id: string, datosGuardados: any) {
     this.historialActivoId = id; 
-    this.rutinaActiva = { nombre: datosGuardados.rutinaNombre, ejerciciosLista: datosGuardados.ejercicios };
+
+    let ejerciciosSincronizados = datosGuardados.ejercicios.map((ejGuardado: any, index: number) => {
+      const ejPlantilla = this.rutinaSeleccionada.ejerciciosLista[index];
+      if (ejPlantilla) {
+        return {
+          ...ejGuardado,
+          id: ejPlantilla.id || ejGuardado.id, 
+          nombre: ejPlantilla.nombre,
+          musculoAsignado: ejPlantilla.musculoAsignado
+        };
+      }
+      return ejGuardado; 
+    });
+
+    this.rutinaActiva = { 
+      id: this.rutinaSeleccionada.id, 
+      nombre: this.rutinaSeleccionada.nombre, 
+      ejerciciosLista: ejerciciosSincronizados 
+    };
+    
     this.cerrarDetalle(); 
     this.entrenamientoActivo = true; 
     this.tiempoSegundos = datosGuardados.duracionSegundos; 
     this.horaInicioEntrenamiento = datosGuardados.horaInicio;
     
     this.timerInterval = setInterval(() => { this.tiempoSegundos++; }, 1000);
+
+    await this.cargarPrevios();
+  }
+
+  async cargarPrevios() {
+    try {
+      // 🔴 BLINDAJE APLICADO: Envolvemos getDocs en el contexto seguro
+      await runInInjectionContext(this.injector, async () => {
+        const q = query(
+          this.historialCol, 
+          where('userId', '==', this.authService.currentUserUid), 
+          where('rutinaNombre', '==', this.rutinaActiva.nombre), 
+          where('estado', '==', 'completado')
+        );
+        
+        const docs = await getDocs(q);
+        let historiales: any[] = [];
+        docs.forEach(d => historiales.push(d.data()));
+        
+        if (historiales.length > 0) {
+          historiales.sort((a, b) => new Date(b.fechaCompleta).getTime() - new Date(a.fechaCompleta).getTime());
+          const ultimoEntrenamiento = historiales[0];
+          
+          this.rutinaActiva.ejerciciosLista.forEach((ejActivo: any) => {
+            const ejPrevio = ultimoEntrenamiento.ejercicios.find((e: any) => e.id === ejActivo.id || e.nombre === ejActivo.nombre);
+            
+            if (ejPrevio && ejPrevio.setsActivos) {
+              ejActivo.setsActivos.forEach((set: any, i: number) => {
+                if (ejPrevio.setsActivos[i]) {
+                  set.previoString = `${ejPrevio.setsActivos[i].kg}kg x ${ejPrevio.setsActivos[i].reps}`;
+                }
+              });
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error al cargar previos:", error);
+    }
   }
 
   solicitarCancelar() {
@@ -236,11 +356,76 @@ export class DashboardComponent implements OnDestroy {
     this.mostrarModalConfirmacion = true;
   }
 
-  async ejecutarAccionConfirmada() {
+  limpiarEntrenamientoActivo() {
+    this.rutinaActiva.ejerciciosLista = this.rutinaActiva.ejerciciosLista.filter((ej: any) => {
+      return ej.nombre && ej.nombre.trim() !== '' && ej.musculoAsignado && ej.musculoAsignado !== '';
+    });
+
+    this.rutinaActiva.ejerciciosLista.forEach((ej: any) => {
+      ej.setsActivos.forEach((set: any) => {
+        if (set.kg === null || set.kg === undefined || set.kg === '') set.kg = 0;
+        if (set.reps === null || set.reps === undefined || set.reps === '') set.reps = 0;
+      });
+    });
+  }
+
+ async ejecutarAccionConfirmada() {
     this.mostrarModalConfirmacion = false;
 
     if (this.accionConfirmacion === 'cancelar') {
       clearInterval(this.timerInterval); 
+      
+      if (this.historialActivoId) {
+        try {
+          const idParaBorrar = this.historialActivoId; // Guardamos el ID antes de limpiar
+          const nombreRutinaCancelada = this.rutinaActiva.nombre;
+          const idRutinaPlantilla = this.rutinaActiva.id; // Necesitamos saber a qué tarjeta actualizarle el tiempo
+
+          await runInInjectionContext(this.injector, async () => {
+            // 1. Borramos la sesión cancelada
+            await deleteDoc(doc(this.historialCol, idParaBorrar as string)); 
+            console.log("🗑️ Sesión borrada exitosamente");
+
+            // 2. RECÁLCULO DINÁMICO: Buscamos el último entrenamiento completado de esta rutina
+            const q = query(
+              this.historialCol, 
+              where('userId', '==', this.authService.currentUserUid), 
+              where('rutinaNombre', '==', nombreRutinaCancelada), 
+              where('estado', '==', 'completado')
+            );
+            
+            const docs = await getDocs(q);
+            let historiales: any[] = [];
+            docs.forEach(d => historiales.push(d.data()));
+
+            let nuevosMinutos = 0; // Por defecto a 0 si no hay historial previo
+
+            if (historiales.length > 0) {
+              // Ordenamos para encontrar el más reciente de los que quedaron vivos
+              historiales.sort((a, b) => new Date(b.fechaCompleta).getTime() - new Date(a.fechaCompleta).getTime());
+              const ultimoEntrenamientoVivo = historiales[0];
+              nuevosMinutos = Math.ceil(ultimoEntrenamientoVivo.duracionSegundos / 60);
+              console.log(`⏱️ Recálculo: El entrenamiento anterior duró ${nuevosMinutos} min`);
+            } else {
+              console.log(`⏱️ Recálculo: No hay historial previo, se regresa a 0 min`);
+            }
+
+            // 3. Actualizamos la tarjeta de la plantilla con el tiempo correcto
+            if (idRutinaPlantilla) {
+              const rutinaRef = doc(this.rutinasCol, idRutinaPlantilla);
+              await updateDoc(rutinaRef, { duracion: nuevosMinutos });
+              
+              // Actualización visual si la rutina sigue seleccionada
+              if (this.rutinaSeleccionada && this.rutinaSeleccionada.id === idRutinaPlantilla) {
+                this.rutinaSeleccionada.duracion = nuevosMinutos;
+              }
+            }
+          });
+        } catch (error) {
+          console.error("Error al borrar la sesión cancelada:", error);
+        }
+      }
+
       this.entrenamientoActivo = false;  
       this.rutinaActiva = null; 
       this.historialActivoId = null;
@@ -253,8 +438,17 @@ export class DashboardComponent implements OnDestroy {
       }
 
       clearInterval(this.timerInterval); 
+      this.limpiarEntrenamientoActivo(); 
+
+      if (this.rutinaActiva.ejerciciosLista.length === 0) {
+        this.entrenamientoActivo = false;
+        this.rutinaActiva = null;
+        return; 
+      }
+
       try {
         const registro = this.generarRegistro('incompleto');
+        
         await runInInjectionContext(this.injector, async () => {
           if (this.historialActivoId) {
             await updateDoc(doc(this.historialCol, this.historialActivoId), registro);
@@ -262,12 +456,14 @@ export class DashboardComponent implements OnDestroy {
             await addDoc(this.historialCol, registro);
           }
         });
+        
         this.mostrarAlerta('Entrenamiento pausado correctamente.');
       } catch (error) {
         console.error("Error al pausar:", error);
       }
       this.entrenamientoActivo = false;
       this.rutinaActiva = null;
+
     } else if (this.accionConfirmacion === 'eliminarRutina') {
       try {
         await runInInjectionContext(this.injector, async () => {
@@ -279,6 +475,7 @@ export class DashboardComponent implements OnDestroy {
         console.error("Error al eliminar:", error);
       }
     }
+    
     this.accionConfirmacion = null;
   }
 
@@ -297,6 +494,7 @@ export class DashboardComponent implements OnDestroy {
     const fechaActual = new Date();
     
     return {
+      userId: this.authService.currentUserUid,
       fechaCompleta: fechaActual.toISOString(),
       fechaCorta: fechaActual.toLocaleDateString('es-MX'), 
       horaInicio: this.horaInicioEntrenamiento,     
@@ -312,30 +510,74 @@ export class DashboardComponent implements OnDestroy {
 
   async finalizarEntrenamiento() {
     clearInterval(this.timerInterval); 
+    this.limpiarEntrenamientoActivo(); 
+
+    if (this.rutinaActiva.ejerciciosLista.length === 0) {
+      this.mostrarAlerta('Entrenamiento vacío descartado.');
+      this.entrenamientoActivo = false;
+      this.rutinaActiva = null;
+      return;
+    }
+
     try {
       const registro = this.generarRegistro('completado');
+      const minutosReales = Math.ceil(this.tiempoSegundos / 60);
       
-      await runInInjectionContext(this.injector, async () => {
-        if (this.historialActivoId) {
-          const historialRef = doc(this.historialCol, this.historialActivoId);
-          await updateDoc(historialRef, registro);
+      // 🔴 REESTRUCTURACIÓN: Extraemos los IDs y datos necesarios ANTES de abrir el contexto de inyección
+      const historialIdTarget = this.historialActivoId;
+      const rutinaIdTarget = this.rutinaActiva && this.rutinaActiva.id ? this.rutinaActiva.id : null;
+
+      // Actualizamos visualmente al instante
+      if (this.rutinaSeleccionada) {
+        this.rutinaSeleccionada.duracion = minutosReales;
+      }
+      this.resumenDatos = registro;
+
+      // 🔴 BLINDAJE TOTAL: El contexto de inyección solo debe ejecutar funciones puras de Firestore
+      runInInjectionContext(this.injector, () => {
+        if (historialIdTarget) {
+          updateDoc(doc(this.historialCol, historialIdTarget), registro);
         } else {
-          await addDoc(this.historialCol, registro);
+          addDoc(this.historialCol, registro);
+        }
+
+        if (rutinaIdTarget) {
+          updateDoc(doc(this.rutinasCol, rutinaIdTarget), { duracion: minutosReales });
         }
       });
       
-      this.resumenDatos = registro;
       this.mostrarResumen = true;
     } catch (error) {
       console.error("Error al finalizar:", error);
       this.mostrarAlerta("Error de conexión al guardar tu progreso."); 
     }
+    
     this.entrenamientoActivo = false;
     this.rutinaActiva = null;
   }
 
+  agregarEjercicioEnVivo() {
+    this.rutinaActiva.ejerciciosLista.push({ 
+      id: this.generarId(), 
+      nombre: '', 
+      musculoAsignado: '',
+      setsActivos: [{ kg: 0, reps: null, completado: false, previoString: '-' }] 
+    });
+  }
+
+  eliminarEjercicioEnVivo(ejercicioIndex: number) {
+    this.rutinaActiva.ejerciciosLista.splice(ejercicioIndex, 1);
+  }
+
   agregarSetEnVivo(ejercicioIndex: number) {
-    this.rutinaActiva.ejerciciosLista[ejercicioIndex].setsActivos.push({ kg: 0, reps: this.rutinaActiva.ejerciciosLista[ejercicioIndex].reps, completado: false });
+    this.rutinaActiva.ejerciciosLista[ejercicioIndex].setsActivos.push({ kg: 0, reps: this.rutinaActiva.ejerciciosLista[ejercicioIndex].reps, completado: false, previoString: '-' });
+  }
+
+  quitarSetEnVivo(ejercicioIndex: number) {
+    const sets = this.rutinaActiva.ejerciciosLista[ejercicioIndex].setsActivos;
+    if (sets.length > 1) {
+      sets.pop();
+    }
   }
 
   marcarSet(set: any) { set.completado = !set.completado; }

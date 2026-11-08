@@ -1,12 +1,8 @@
-<!-- Contenedor de la pantalla con padding (espacio a los lados) -->
 <div class="flex flex-col gap-8 pt-8 pb-4">
   
-  <!-- ========================================== -->
-  <!-- SECCIÓN: HOY (Tarjetas Gigantes)           -->
-  <!-- ========================================== -->
+  <!-- HOY -->
   <div>
     <h2 class="text-3xl font-black mb-4">Hoy <span class="text-cyan-400 font-bold text-lg">({{ diaHoyStr }})</span></h2>
-    
     @if (rutinasHoy.length > 0) {
       <div class="flex flex-col gap-4">
         @for (rutina of rutinasHoy; track rutina.id) {
@@ -14,7 +10,6 @@
             <div class="mt-auto">
               <h3 class="text-5xl font-extrabold tracking-tight uppercase leading-none">{{ rutina.nombre }}</h3>
               <p class="text-zinc-400 mt-2 mb-5 font-bold">{{ rutina.duracion }} min · {{ rutina.ejercicios }} ejercicios</p>
-              
               <button (click)="abrirDetalle(rutina)" class="w-full bg-cyan-400 text-black font-black text-lg py-4 rounded-2xl mt-2 hover:bg-cyan-300 transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)]">
                 Ver Detalles
               </button>
@@ -30,12 +25,9 @@
     }
   </div>
 
-  <!-- ========================================== -->
-  <!-- SECCIÓN: MAÑANA                            -->
-  <!-- ========================================== -->
+  <!-- MAÑANA -->
   <div>
     <h3 class="text-xl font-bold mb-3 text-zinc-300">Mañana <span class="text-zinc-500 text-sm">({{ diaMananaStr }})</span></h3>
-    
     @if (rutinasManana.length > 0) {
       <div class="flex flex-col gap-3">
         @for (rutina of rutinasManana; track rutina.id) {
@@ -55,16 +47,13 @@
     }
   </div>
 
-  <!-- ========================================== -->
-  <!-- SECCIÓN: RESTO DE LA SEMANA                -->
-  <!-- ========================================== -->
+  <!-- RESTO DE LA SEMANA -->
   @if (rutinasResto.length > 0) {
     <div>
       <div class="flex justify-between items-end mb-4">
         <h3 class="text-lg font-bold text-zinc-400">Tu plan semanal </h3>
         <a routerLink="/progreso" class="text-cyan-500 text-sm font-bold hover:text-cyan-400">Ver progreso →</a>
       </div>
-      
       <div class="flex flex-col gap-2">
         @for (rutina of rutinasResto; track rutina.id) {
           <div (click)="abrirDetalle(rutina)" class="bg-zinc-900/80 rounded-2xl p-4 flex items-center justify-between border border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
@@ -81,33 +70,25 @@
       </div>
     </div>
   }
-
 </div>
 
-<!-- ========================================== -->
-<!-- MODAL UNIFICADO (DETALLE / EDICIÓN)        -->
-<!-- ========================================== -->
+<!-- MODAL UNIFICADO (DETALLE / EDICIÓN) -->
 @if (rutinaSeleccionada) {
   <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="cerrarDetalle()">
     <div class="bg-zinc-900 border border-zinc-800 rounded-t-[36px] sm:rounded-[36px] p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar flex flex-col" (click)="$event.stopPropagation()">
-      
       <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-6 shrink-0"></div>
-
       <button (click)="cerrarDetalle()" class="absolute top-6 right-6 text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-800 rounded-full p-2 z-10 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
 
       @if (!modoEdicion) {
         <div class="flex justify-between items-center mb-4">
-          <div class="inline-block bg-cyan-500/20 text-cyan-400 text-xs font-black uppercase tracking-widest px-3 py-1 rounded-xl">
-            {{ rutinaSeleccionada.dia }}
-          </div>
+          <div class="inline-block bg-cyan-500/20 text-cyan-400 text-xs font-black uppercase tracking-widest px-3 py-1 rounded-xl">{{ rutinaSeleccionada.dia }}</div>
           <button (click)="activarEdicion()" class="text-zinc-400 hover:text-cyan-400 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider transition-colors mr-10 bg-zinc-800/50 px-3 py-1.5 rounded-xl border border-zinc-700/50">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
             Editar
           </button>
         </div>
-        
         <h2 class="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight mb-2">{{ rutinaSeleccionada.nombre }}</h2>
         <p class="text-zinc-400 text-xs font-black uppercase tracking-widest mb-6">{{ rutinaSeleccionada.ejercicios }} Ejercicios · {{ rutinaSeleccionada.duracion }} min</p>
         
@@ -120,7 +101,7 @@
                 </div>
                 <div>
                   <p class="text-[10px] text-cyan-400 font-black tracking-widest uppercase mb-0.5">{{ ej.sets }} sets x {{ ej.reps }} reps</p>
-                  <p class="text-white font-bold text-sm leading-tight">{{ ej.nombre }}</p>
+                  <p class="text-white font-bold text-sm leading-tight">{{ ej.nombre }} <span class="text-zinc-500 font-normal ml-1">({{ ej.musculoAsignado }})</span></p>
                 </div>
               </div>
             }
@@ -130,21 +111,19 @@
             <p class="text-zinc-500 text-sm font-bold">Esta rutina aún no tiene ejercicios registrados.</p>
           </div>
         }
-
         <button (click)="empezarEntrenamiento()" class="w-full bg-cyan-400 text-black font-black text-lg py-4 rounded-2xl hover:bg-cyan-300 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.4)] mt-auto flex justify-center items-center gap-2">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
-          Empezar Entrenamiento
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg> Empezar Entrenamiento
         </button>
 
       } @else {
+        <!-- MODO EDICIÓN -->
         <div class="flex items-center justify-between mb-6">
           <h3 class="text-2xl font-black text-white uppercase tracking-tight">Editar Rutina</h3>
           <button (click)="cancelarEdicion()" class="text-zinc-400 hover:text-white text-xs font-black uppercase tracking-wider mr-10 bg-zinc-800/50 px-3 py-1.5 rounded-xl border border-zinc-700/50">Cerrar</button>
         </div>
         
         <div class="flex flex-col gap-4">
-          <input type="text" [(ngModel)]="rutinaEnEdicion.nombre" placeholder="MÚSCULO O ENFOQUE" class="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-cyan-400 uppercase placeholder:text-zinc-600">
-          
+          <input type="text" [(ngModel)]="rutinaEnEdicion.nombre" placeholder="NOMBRE DE LA RUTINA" class="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-cyan-400 uppercase placeholder:text-zinc-600">
           <div class="grid grid-cols-2 gap-4">
             <select [(ngModel)]="rutinaEnEdicion.dia" class="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-cyan-400">
               <option value="Lunes">Lunes</option><option value="Martes">Martes</option><option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option><option value="Viernes">Viernes</option><option value="Sábado">Sábado</option><option value="Domingo">Domingo</option>
@@ -162,17 +141,25 @@
               @for (ejercicio of rutinaEnEdicion.ejerciciosLista; track $index) {
                 <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 relative">
                   <button (click)="eliminarEjercicioEdit($index)" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-lg">✕</button>
-                  
                   <input type="text" [(ngModel)]="ejercicio.nombre" placeholder="Nombre (Ej. Press)" class="w-full bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-3 text-white font-bold mb-3 focus:outline-none focus:border-cyan-400 placeholder:text-zinc-600 text-xs">
                   
+                  <div class="flex gap-3 mb-3">
+                    <select [(ngModel)]="ejercicio.musculoAsignado" class="w-full bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer">
+                      <option value="" disabled selected>¿Qué músculo trabaja?</option>
+                      @for (m of opcionesMusculos; track $index) {
+                        <option [value]="m">{{ m }}</option>
+                      }
+                    </select>
+                  </div>
+
                   <div class="grid grid-cols-2 gap-3">
                     <div class="flex items-center bg-zinc-950/50 rounded-xl px-3 py-2 border border-zinc-800/80">
                       <span class="text-[10px] text-zinc-500 font-black tracking-widest mr-2">SETS</span>
-                      <input type="number" min="0" oninput="validity.valid||(value='');" [(ngModel)]="ejercicio.sets" placeholder="0" class="w-full bg-transparent text-white text-center font-bold text-sm focus:outline-none">
+                      <input type="number" min="1" oninput="validity.valid||(value='');" [(ngModel)]="ejercicio.sets" placeholder="0" class="w-full bg-transparent text-white text-center font-bold text-sm focus:outline-none">
                     </div>
                     <div class="flex items-center bg-zinc-950/50 rounded-xl px-3 py-2 border border-zinc-800/80">
                       <span class="text-[10px] text-zinc-500 font-black tracking-widest mr-2">REPS</span>
-                      <input type="number" min="0" oninput="validity.valid||(value='');" [(ngModel)]="ejercicio.reps" placeholder="0" class="w-full bg-transparent text-white text-center font-bold text-sm focus:outline-none">
+                      <input type="number" min="1" oninput="validity.valid||(value='');" [(ngModel)]="ejercicio.reps" placeholder="0" class="w-full bg-transparent text-white text-center font-bold text-sm focus:outline-none">
                     </div>
                   </div>
                 </div>
@@ -194,38 +181,43 @@
   </div>
 }
 
-<!-- ========================================== -->
-<!-- PANTALLA DE ENTRENAMIENTO ACTIVO           -->
-<!-- ========================================== -->
+<!-- PANTALLA DE ENTRENAMIENTO ACTIVO -->
 @if (entrenamientoActivo && rutinaActiva) {
   <div class="fixed inset-0 bg-zinc-950 z-[100] flex flex-col h-screen w-full overflow-hidden">
     
     <div class="flex justify-between items-center p-4 bg-zinc-900 border-b border-zinc-800 shrink-0 mt-8 relative">
       <div class="flex gap-3 items-center">
-        <!-- Llaman al modal visual en lugar de alert/confirm -->
-        <button (click)="solicitarCancelar()" class="text-red-400 text-sm font-bold hover:text-red-300">
-          ✕ <span class="hidden sm:inline">Cancelar</span>
-        </button>
+        <button (click)="solicitarCancelar()" class="text-red-400 text-sm font-bold hover:text-red-300">✕ <span class="hidden sm:inline">Cancelar</span></button>
         <span class="text-zinc-700">|</span>
-        <button (click)="solicitarPausar()" class="text-zinc-400 text-sm font-bold hover:text-white">
-          Pausar
-        </button>
+        <button (click)="solicitarPausar()" class="text-zinc-400 text-sm font-bold hover:text-white">Pausar</button>
       </div>
-
       <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 text-cyan-400 font-black text-xl tracking-widest">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         {{ tiempoFormateado }}
       </div>
-
       <button (click)="finalizarEntrenamiento()" class="bg-cyan-500/20 text-cyan-400 text-sm font-black px-4 py-2 rounded-xl border border-cyan-500/50">FINISH</button>
     </div>
 
     <div class="flex-1 overflow-y-auto hide-scrollbar p-4 pb-32 flex flex-col gap-8">
       @for (ejercicio of rutinaActiva.ejerciciosLista; track $index; let ejIndex = $index) {
         <div>
-          <h2 class="text-2xl font-black text-white uppercase mb-4 tracking-tight">{{ ejercicio.nombre }}</h2>
+          <!-- 🔴 ENCABEZADO EDITABLE (NOMBRE, MÚSCULO Y ELIMINAR) -->
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1 mr-4">
+              <input type="text" [(ngModel)]="ejercicio.nombre" placeholder="NOMBRE DEL EJERCICIO" class="text-2xl font-black text-white uppercase tracking-tight bg-transparent focus:outline-none w-full border-b border-transparent focus:border-zinc-700 transition-colors placeholder:text-zinc-700">
+              <select [(ngModel)]="ejercicio.musculoAsignado" class="mt-1 bg-zinc-900 border border-zinc-800 text-cyan-400 text-[10px] font-black uppercase tracking-widest px-2 py-1.5 rounded-lg focus:outline-none cursor-pointer">
+                <option value="" disabled selected>+ Asignar Músculo</option>
+                @for (m of opcionesMusculos; track $index) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
+            </div>
+            <button (click)="eliminarEjercicioEnVivo(ejIndex)" class="text-zinc-600 hover:text-red-500 transition-colors p-2.5 bg-zinc-900 rounded-full border border-zinc-800 shrink-0 mt-1" title="Quitar ejercicio de hoy">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+
           <div class="bg-zinc-900 rounded-[32px] p-2 border border-zinc-800">
-            
             <div class="grid grid-cols-[2rem_1fr_1fr_1fr_3rem] gap-2 text-center text-[10px] font-black text-zinc-500 mb-2 mt-2 tracking-widest uppercase px-2">
               <div>Set</div><div>Previo</div><div>KG</div><div>Reps</div><div></div>
             </div>
@@ -234,65 +226,63 @@
               @for (set of ejercicio.setsActivos; track $index; let setIndex = $index) {
                 <div class="grid grid-cols-[2rem_1fr_1fr_1fr_3rem] gap-2 items-center px-2 py-1 transition-opacity duration-300" [class.opacity-40]="set.completado">
                   <div class="text-zinc-400 font-bold text-sm text-center">{{ setIndex + 1 }}</div>
-                  
-                  <div class="text-zinc-600 font-bold text-xs text-center">
-                    {{ set.previoString || '-' }}
-                  </div>
+                  <div class="text-zinc-600 font-bold text-xs text-center">{{ set.previoString || '-' }}</div>
                   
                   <div class="bg-zinc-800/80 rounded-xl flex items-center justify-center p-1 border border-zinc-700/50">
                     <input type="number" min="0" oninput="validity.valid||(value='');" [(ngModel)]="set.kg" placeholder="0" class="w-full bg-transparent text-white font-bold text-center text-lg focus:outline-none placeholder:text-zinc-600">
                   </div>
                   <div class="bg-zinc-800/80 rounded-xl flex items-center justify-center p-1 border border-zinc-700/50">
-                    <input type="number" min="0" oninput="validity.valid||(value='');" [(ngModel)]="set.reps" class="w-full bg-transparent text-white font-bold text-center text-lg focus:outline-none">
+                    <input type="number" min="0" oninput="validity.valid||(value='');" [(ngModel)]="set.reps" placeholder="0" class="w-full bg-transparent text-white font-bold text-center text-lg focus:outline-none">
                   </div>
                   
-                  <button (click)="marcarSet(set)" 
-                    class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto transition-colors shadow-sm"
-                    [class.bg-zinc-800]="!set.completado" [class.text-zinc-600]="!set.completado" [class.bg-cyan-500]="set.completado" [class.text-black]="set.completado" [class.shadow-[0_0_15px_rgba(34,211,238,0.4)]]="set.completado">
+                  <button (click)="marcarSet(set)" class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto transition-colors shadow-sm" [class.bg-zinc-800]="!set.completado" [class.text-zinc-600]="!set.completado" [class.bg-cyan-500]="set.completado" [class.text-black]="set.completado" [class.shadow-[0_0_15px_rgba(34,211,238,0.4)]]="set.completado">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                   </button>
                 </div>
               }
             </div>
 
-            <button (click)="agregarSetEnVivo(ejIndex)" class="w-full text-zinc-400 text-sm font-bold py-4 mt-2 hover:text-white transition-colors bg-zinc-800/30 rounded-2xl border border-dashed border-zinc-700">
-              + Añadir set
-            </button>
+            <!-- 🔴 BOTONES DE AGREGAR Y QUITAR SET -->
+            <div class="flex gap-2 mt-2">
+              @if (ejercicio.setsActivos.length > 1) {
+                <button (click)="quitarSetEnVivo(ejIndex)" class="w-14 text-zinc-500 hover:text-red-400 hover:border-red-500/50 bg-zinc-800/30 rounded-2xl border border-dashed border-zinc-700 flex items-center justify-center transition-colors">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                </button>
+              }
+              <button (click)="agregarSetEnVivo(ejIndex)" class="flex-1 text-zinc-400 text-sm font-bold py-4 hover:text-white transition-colors bg-zinc-800/30 rounded-2xl border border-dashed border-zinc-700">
+                + Añadir set
+              </button>
+            </div>
+            
           </div>
         </div>
       }
+
+      <!-- 🔴 BOTÓN GIGANTE PARA AGREGAR EJERCICIO EXTRA -->
+      <button (click)="agregarEjercicioEnVivo()" class="w-full border-2 border-dashed border-zinc-800 rounded-[32px] p-6 text-zinc-500 font-black uppercase tracking-widest hover:text-cyan-400 hover:border-cyan-900/50 hover:bg-cyan-900/10 transition-all flex flex-col items-center justify-center gap-2 mb-4">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Añadir Ejercicio Extra
+      </button>
+
     </div>
   </div>
 }
 
-<!-- ========================================== -->
-<!-- MODAL DE CONFIRMACIÓN VISUAL (ESTILO APP)  -->
-<!-- ========================================== -->
+<!-- MODALES DE ALERTA Y RESUMEN -->
 @if (mostrarModalConfirmacion) {
   <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
     <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative flex flex-col text-center">
-      
       <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-6 shrink-0"></div>
-      
       <h3 class="text-2xl font-black text-white uppercase tracking-tight mb-2">{{ tituloConfirmacion }}</h3>
       <p class="text-zinc-400 text-sm font-medium mb-8 leading-relaxed">{{ mensajeConfirmacion }}</p>
-
       <div class="flex gap-3">
-        <button (click)="cerrarModalConfirmacion()" class="flex-1 bg-zinc-800 text-white font-bold py-3.5 rounded-2xl hover:bg-zinc-700 transition-colors">
-          Volver
-        </button>
-        <button (click)="ejecutarAccionConfirmada()" class="flex-1 bg-cyan-400 text-black font-extrabold py-3.5 rounded-2xl hover:bg-cyan-300 transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-          Sí, continuar
-        </button>
+        <button (click)="cerrarModalConfirmacion()" class="flex-1 bg-zinc-800 text-white font-bold py-3.5 rounded-2xl hover:bg-zinc-700 transition-colors">Volver</button>
+        <button (click)="ejecutarAccionConfirmada()" class="flex-1 bg-cyan-400 text-black font-extrabold py-3.5 rounded-2xl hover:bg-cyan-300 transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)]">Sí, continuar</button>
       </div>
-
     </div>
   </div>
 }
 
-<!-- ========================================== -->
-<!-- PANTALLA DE RESUMEN (WORKOUT COMPLETED)    -->
-<!-- ========================================== -->
 @if (mostrarResumen && resumenDatos) {
   <div class="fixed inset-0 bg-zinc-950 z-[110] flex flex-col h-screen w-full overflow-hidden p-6">
     <div class="flex justify-between items-center mb-10 mt-6">
@@ -302,7 +292,6 @@
       <h2 class="text-xl font-bold text-white">¡Entrenamiento completado!</h2>
       <div class="w-10"></div>
     </div>
-
     <div class="flex-1 flex flex-col gap-8">
       <div>
         <p class="text-zinc-500 text-xs font-black uppercase tracking-widest mb-2">Nombre de la rutina</p>

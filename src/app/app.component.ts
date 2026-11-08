@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Injector, runInInjectionContext } from '@angular/core';
 import { RouterOutlet, RouterLink, Router } from '@angular/router'; 
 import { FormsModule } from '@angular/forms';
 import { Firestore, collection, addDoc, query, where, getDocs } from '@angular/fire/firestore';
@@ -14,6 +14,7 @@ export class AppComponent {
   private firestore: Firestore = inject(Firestore);
   private router: Router = inject(Router); 
   private authService: AuthService = inject(AuthService); 
+  private injector = inject(Injector); 
 
   modalAbierto = false;
   mensajeError = '';
@@ -43,6 +44,11 @@ export class AppComponent {
     return this.router.url === '/login' || this.router.url === '/';
   }
 
+  // 🔴 NUEVA FUNCIÓN: Generador de ID único alfanumérico
+  generarId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+  }
+
   abrirModal() {
     this.modalAbierto = true;
     this.mensajeError = '';
@@ -59,6 +65,7 @@ export class AppComponent {
 
   agregarEjercicio() {
     this.nuevaRutina.ejerciciosLista.push({ 
+      id: this.generarId(), // 🔴 Inyectamos el ID invisible
       nombre: '', 
       musculoAsignado: '', 
       sets: null, 
@@ -90,21 +97,18 @@ export class AppComponent {
       return;
     }
 
-    // Validar que todos los ejercicios tengan un nombre escrito
     const ejerciciosSinNombre = this.nuevaRutina.ejerciciosLista.some(ej => !ej.nombre.trim());
     if (ejerciciosSinNombre) {
       this.mensajeError = 'Por favor, ponle nombre a todos tus ejercicios.';
       return;
     }
 
-    // Validar que todos los ejercicios tengan un músculo seleccionado
     const ejerciciosSinMusculo = this.nuevaRutina.ejerciciosLista.some(ej => !ej.musculoAsignado);
     if (ejerciciosSinMusculo) {
       this.mensajeError = 'Por favor, selecciona qué músculo trabaja cada ejercicio.';
       return;
     }
 
-    // Blindaje contra números negativos, ceros o campos vacíos en sets/reps
     const ejerciciosConNumerosMalos = this.nuevaRutina.ejerciciosLista.some(
       ej => ej.sets === null || ej.sets <= 0 || ej.reps === null || ej.reps <= 0
     );
@@ -114,9 +118,10 @@ export class AppComponent {
     }
 
     try {
-      const rutinasRef = collection(this.firestore, 'rutinas');
       const nombreEstandarizado = this.nuevaRutina.nombre.trim().toUpperCase();
-
+      const rutinasRef = collection(this.firestore, 'rutinas');
+      
+      // 1. Fase de LECTURA: Buscamos duplicados SIN el contexto de inyección forzado
       const consultaDia = query(
         rutinasRef, 
         where('dia', '==', this.nuevaRutina.dia),
@@ -139,18 +144,23 @@ export class AppComponent {
         return; 
       }
 
-      // Guardamos la rutina final
       const rutinaParaGuardar = {
         ...this.nuevaRutina,
         nombre: nombreEstandarizado,
         ejercicios: this.nuevaRutina.ejerciciosLista.length,
         userId: userId,
-        duracionEstimada: 0
+        duracion: 0
       };
 
-      await addDoc(rutinasRef, rutinaParaGuardar);
-      console.log("✅ Rutina guardada perfectamente estructurada");
+      // 2. Fase de ESCRITURA: Envolvemos estrictamente el guardado (addDoc) en el contexto seguro
+      runInInjectionContext(this.injector, () => {
+        addDoc(rutinasRef, rutinaParaGuardar).then(() => {
+          console.log("✅ Rutina guardada perfectamente estructurada");
+        });
+      });
+      
       this.cerrarModal();
+
     } catch (error) {
       console.error("❌ Error al guardar:", error);
       this.mensajeError = 'Hubo un error de conexión con la base de datos.';
