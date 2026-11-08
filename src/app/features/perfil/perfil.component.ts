@@ -1,6 +1,10 @@
 import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
+import { Router } from '@angular/router';
+import { Firestore, collection, onSnapshot, query, where } from '@angular/fire/firestore';
+
+// CORRECCIÓN 1: La ruta correcta (solo dos ../)
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-perfil',
@@ -10,6 +14,8 @@ import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
 })
 export class PerfilComponent implements OnDestroy {
   private firestore: Firestore = inject(Firestore);
+  private authService = inject(AuthService); 
+  private router = inject(Router);           
   
   private historialCol = collection(this.firestore, 'historial');
   private listenerHistorial: any;
@@ -17,42 +23,45 @@ export class PerfilComponent implements OnDestroy {
   totalEntrenamientos = 0;
   totalMinutos = 0;
 
-  // ==========================================
-  // VARIABLES PARA EL MODAL DE HISTORIAL
-  // ==========================================
   mostrarModalHistorial = false;
   filtroActivo: 'semana' | 'mes' | 'ano' | 'todo' = 'mes'; 
   historialCompleto: any[] = [];
   historialVisualizado: any[] = [];
-  
-  // NUEVO: Variable para ver los detalles de un entrenamiento pasado
   sesionSeleccionada: any = null; 
 
   constructor() {
-    this.listenerHistorial = onSnapshot(this.historialCol, (snapshot) => {
-      let entrenamientosCompletados = 0;
-      let segundosTotales = 0;
-      this.historialCompleto = []; 
+    const userId = this.authService.currentUserUid;
 
-      snapshot.forEach((doc) => {
-        const sesion: any = { id: doc.id, ...doc.data() };
-        
-        if (sesion['estado'] === 'completado') {
-          entrenamientosCompletados++;
-          if (sesion['duracionSegundos']) {
-            segundosTotales += sesion['duracionSegundos'];
+    if (userId) {
+      const consultaUsuario = query(this.historialCol, where('userId', '==', userId));
+
+      // CORRECCIÓN 2: Le especificamos (snapshot: any) para quitar el error de "desconocido"
+      this.listenerHistorial = onSnapshot(consultaUsuario, (snapshot: any) => {
+        let entrenamientosCompletados = 0;
+        let segundosTotales = 0;
+        this.historialCompleto = []; 
+
+        // También le ponemos (doc: any)
+        snapshot.forEach((doc: any) => {
+          const sesion: any = { id: doc.id, ...doc.data() };
+          
+          if (sesion['estado'] === 'completado') {
+            entrenamientosCompletados++;
+            if (sesion['duracionSegundos']) {
+              segundosTotales += sesion['duracionSegundos'];
+            }
+            this.historialCompleto.push(sesion);
           }
-          this.historialCompleto.push(sesion);
-        }
-      });
-      
-      this.totalEntrenamientos = entrenamientosCompletados;
-      this.totalMinutos = Math.floor(segundosTotales / 60);
+        });
+        
+        this.totalEntrenamientos = entrenamientosCompletados;
+        this.totalMinutos = Math.floor(segundosTotales / 60);
 
-      this.historialCompleto.sort((a, b) => new Date(b.fechaCompleta).getTime() - new Date(a.fechaCompleta).getTime());
-      
-      this.aplicarFiltro(this.filtroActivo);
-    });
+        this.historialCompleto.sort((a, b) => new Date(b.fechaCompleta).getTime() - new Date(a.fechaCompleta).getTime());
+        
+        this.aplicarFiltro(this.filtroActivo);
+      });
+    }
   }
 
   ngOnDestroy() {
@@ -61,12 +70,18 @@ export class PerfilComponent implements OnDestroy {
     }
   }
 
-  // ==========================================
-  // LÓGICA DEL MODAL DE HISTORIAL
-  // ==========================================
+  async cerrarSesion() {
+    try {
+      await this.authService.logout();
+      this.router.navigate(['/login']);
+    } catch (error: any) { // CORRECCIÓN 3: (error: any) para quitar el error de "desconocido"
+      console.error('Error al cerrar sesión:', error);
+    }
+  }
+
   abrirHistorial() {
     this.mostrarModalHistorial = true;
-    this.sesionSeleccionada = null; // Asegura que abra en la lista
+    this.sesionSeleccionada = null; 
   }
 
   cerrarHistorial() {
@@ -76,7 +91,7 @@ export class PerfilComponent implements OnDestroy {
 
   aplicarFiltro(filtro: 'semana' | 'mes' | 'ano' | 'todo') {
     this.filtroActivo = filtro;
-    this.sesionSeleccionada = null; // Si cambia el filtro, vuelve a la lista
+    this.sesionSeleccionada = null; 
     
     if (filtro === 'todo') {
       this.historialVisualizado = [...this.historialCompleto];
@@ -94,7 +109,6 @@ export class PerfilComponent implements OnDestroy {
     });
   }
 
-  // NUEVO: Funciones para navegar entre la lista y los detalles
   verDetallesSesion(sesion: any) {
     this.sesionSeleccionada = sesion;
   }

@@ -1,0 +1,90 @@
+<div class="min-h-screen bg-black flex flex-col justify-center items-center p-6">
+  
+  <div class="mb-10 text-center">
+    <div class="w-16 h-16 bg-zinc-900 rounded-2xl border border-zinc-800 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+      <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+    </div>
+    <h1 class="text-3xl font-black text-white tracking-tight">GymApp</h1>
+    <p class="text-zinc-500 text-sm font-bold uppercase tracking-widest mt-2">
+      {{ esRegistro ? 'Crea tu cuenta' : 'Inicia Sesión' }}
+    </p>
+  </div>
+
+  <div class="w-full max-w-sm bg-[#1a1a1c] p-8 rounded-[32px] border border-zinc-800/50 shadow-2xl">
+    <div class="flex flex-col gap-5">
+      
+      <!-- Input Email -->
+      <div>
+        <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest pl-1 mb-2 block">Correo Electrónico</label>
+        <input 
+          type="email" 
+          [(ngModel)]="email" 
+          placeholder="tu@email.com"
+          class="w-full bg-[#131314] text-white border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors placeholder-zinc-600 font-medium"
+        >
+      </div>
+
+      <!-- Input Contraseña con Ojito -->
+      <div class="relative">
+        <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest pl-1 mb-2 block">Contraseña</label>
+        <input 
+          [type]="mostrarPassword ? 'text' : 'password'"
+          [(ngModel)]="password" 
+          placeholder="••••••••"
+          class="w-full bg-[#131314] text-white border border-zinc-800 rounded-2xl px-4 py-3 pr-12 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors placeholder-zinc-600 font-medium"
+        >
+        <button type="button" (click)="alternarVisibilidadPassword()" class="absolute right-4 top-[34px] text-zinc-500 hover:text-cyan-400 transition-colors">
+            @if (mostrarPassword) {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.71-1.58c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29"></path></svg>
+            } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            }
+        </button>
+      </div>
+
+      <!-- Input Confirmar Contraseña (SOLO VISIBLE EN REGISTRO) -->
+      @if (esRegistro) {
+        <div class="relative">
+          <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest pl-1 mb-2 block">Confirma Contraseña</label>
+          <input 
+            [type]="mostrarConfirmPassword ? 'text' : 'password'"
+            [(ngModel)]="confirmPassword" 
+            placeholder="••••••••"
+            class="w-full bg-[#131314] text-white border border-zinc-800 rounded-2xl px-4 py-3 pr-12 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors placeholder-zinc-600 font-medium"
+          >
+          <button type="button" (click)="alternarVisibilidadConfirmPassword()" class="absolute right-4 top-[34px] text-zinc-500 hover:text-cyan-400 transition-colors">
+              @if (mostrarConfirmPassword) {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.71-1.58c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29"></path></svg>
+              } @else {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+              }
+          </button>
+        </div>
+      }
+
+      @if (mensajeError) {
+        <div class="bg-red-500/10 border border-red-500/50 text-red-400 text-xs font-bold p-3 rounded-xl text-center">
+          {{ mensajeError }}
+        </div>
+      }
+
+      <button 
+        (click)="enviarFormulario()" 
+        [disabled]="cargando"
+        class="w-full bg-white text-black font-black uppercase tracking-widest py-4 rounded-2xl mt-2 hover:bg-zinc-200 transition-colors disabled:opacity-50 flex justify-center items-center h-[56px]"
+      >
+        @if (cargando) {
+          <div class="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+        } @else {
+          {{ esRegistro ? 'Registrarse' : 'Entrar' }}
+        }
+      </button>
+    </div>
+
+    <div class="mt-8 text-center">
+      <button (click)="alternarModo()" class="text-xs font-bold text-zinc-500 hover:text-white transition-colors">
+        {{ esRegistro ? '¿Ya tienes cuenta? Inicia Sesión' : '¿No tienes cuenta? Regístrate aquí' }}
+      </button>
+    </div>
+  </div>
+</div>

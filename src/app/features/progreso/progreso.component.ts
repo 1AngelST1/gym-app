@@ -1,20 +1,23 @@
 import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
+import { MapaMuscularComponent } from '../../shared/components/mapa-muscular/mapa-muscular.component';
 
 @Component({
   selector: 'app-progreso',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MapaMuscularComponent],
   templateUrl: './progreso.component.html'
 })
 export class ProgresoComponent implements OnDestroy {
   private firestore: Firestore = inject(Firestore);
-  
-  // 1. Apuntamos a la colección correcta: "historial"
   private historialCol = collection(this.firestore, 'historial');
   private listenerHistorial: any;
 
+  // Variables Gamificación
+  nivelGeneral = 'Novato';
+  genero: 'masculino' | 'femenino' = 'masculino';
+  
   niveles = {
     pecho: 'base',
     abdomen: 'base',
@@ -23,13 +26,15 @@ export class ProgresoComponent implements OnDestroy {
     piernas: 'base'
   };
 
-  // Variables para la interfaz
+  // Variables Interfaz
   historialReciente: any[] = [];
   mostrarModalDetalle = false;
   sesionSeleccionada: any = null;
+  
+  // Variables Gráfica de Barras Dinámica
+  datosGrafica: { diaLetra: string, fechaStr: string, volumenKg: number, porcentaje: number, hoy: boolean }[] = [];
 
   constructor() {
-    // 2. Solución al error de Angular 19: Listener en el constructor
     this.listenerHistorial = onSnapshot(this.historialCol, (snapshot) => {
       let contadorPecho = 0;
       let contadorPierna = 0;
@@ -38,14 +43,9 @@ export class ProgresoComponent implements OnDestroy {
 
       snapshot.forEach((doc) => {
         const sesion: any = { id: doc.id, ...doc.data() };
-        
-        // Solo contamos lo que realmente entrenaste (completado)
         if (sesion['estado'] === 'completado') {
           historialCompleto.push(sesion);
-          
           const nombre = sesion.rutinaNombre?.toLowerCase() || '';
-          
-          // Contamos cuántos sets totales hiciste de ese músculo
           const setsTotales = sesion.totalSets || 0;
 
           if (nombre.includes('pecho') || nombre.includes('empuje')) contadorPecho += setsTotales;
@@ -54,25 +54,34 @@ export class ProgresoComponent implements OnDestroy {
         }
       });
 
-      // Actualizamos los niveles del muñeco
-      this.niveles.pecho = this.calcularNivel(contadorPecho);
-      this.niveles.piernas = this.calcularNivel(contadorPierna);
-      this.niveles.brazoIzq = this.calcularNivel(contadorBrazo);
-      this.niveles.brazoDer = this.calcularNivel(contadorBrazo);
+      // 1. Calcular Nivel General
+      const totalEntrenamientos = historialCompleto.length;
+      if (totalEntrenamientos < 5) this.nivelGeneral = 'Novato';
+      else if (totalEntrenamientos < 15) this.nivelGeneral = 'Principiante';
+      else if (totalEntrenamientos < 30) this.nivelGeneral = 'Intermedio';
+      else if (totalEntrenamientos < 50) this.nivelGeneral = 'Avanzado';
+      else this.nivelGeneral = 'Élite';
 
-      // 3. Ordenamos para obtener los 2 más recientes
+      // 2. Calcular Niveles Musculares
+      this.niveles.pecho = this.calcularNivelMusculo(contadorPecho);
+      this.niveles.piernas = this.calcularNivelMusculo(contadorPierna);
+      this.niveles.brazoIzq = this.calcularNivelMusculo(contadorBrazo);
+      this.niveles.brazoDer = this.calcularNivelMusculo(contadorBrazo);
+
+      // 3. Obtener Historial Reciente (Últimos 2)
       historialCompleto.sort((a, b) => new Date(b.fechaCompleta).getTime() - new Date(a.fechaCompleta).getTime());
       this.historialReciente = historialCompleto.slice(0, 2);
+
+      // 4. Construir Gráfica Dinámica (Últimos 7 días)
+      this.construirGrafica(historialCompleto);
     });
   }
 
   ngOnDestroy() {
-    if (this.listenerHistorial) {
-      this.listenerHistorial();
-    }
+    if (this.listenerHistorial) this.listenerHistorial();
   }
 
-  calcularNivel(cantidadSets: number): string {
+  calcularNivelMusculo(cantidadSets: number): string {
     if (cantidadSets >= 50) return 'diamante';
     if (cantidadSets >= 30) return 'oro';
     if (cantidadSets >= 15) return 'plata';
@@ -91,7 +100,56 @@ export class ProgresoComponent implements OnDestroy {
     }
   }
 
-  // 4. Lógica del modal de detalle
+  construirGrafica(historial: any[]) {
+    this.datosGrafica = [];
+    const diasSemanaNombres = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    let volumenMaximo = 0;
+
+    // Generar los últimos 7 días hacia atrás
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() - i);
+      const fechaStr = fecha.toLocaleDateString('es-MX');
+      const diaLetra = diasSemanaNombres[fecha.getDay()];
+      
+      // Buscar si entrenaste ese día y sumar volumen (kg x reps)
+      let volumenDia = 0;
+      const sesionesDelDia = historial.filter(h => h.fechaCorta === fechaStr);
+      
+      sesionesDelDia.forEach(sesion => {
+        if (sesion.ejercicios) {
+          sesion.ejercicios.forEach((ej: any) => {
+            ej.setsActivos.forEach((set: any) => {
+              if (set.completado && set.kg && set.reps) {
+                volumenDia += (set.kg * set.reps);
+              }
+            });
+          });
+        }
+      });
+
+      if (volumenDia > volumenMaximo) volumenMaximo = volumenDia;
+
+      this.datosGrafica.push({
+        diaLetra: diaLetra,
+        fechaStr: fechaStr,
+        volumenKg: volumenDia,
+        porcentaje: 0, 
+        hoy: i === 0 
+      });
+    }
+
+    // Calcular el porcentaje de altura para la gráfica
+    this.datosGrafica.forEach(dia => {
+      // Damos un 10% mínimo visual si hay volumen pero es muy bajo, o 0 si no entrenó
+      dia.porcentaje = dia.volumenKg > 0 ? Math.max((dia.volumenKg / volumenMaximo) * 100, 10) : 0;
+    });
+  }
+
+  cambiarGenero() {
+    this.genero = this.genero === 'masculino' ? 'femenino' : 'masculino';
+  }
+
   abrirDetalle(sesion: any) {
     this.sesionSeleccionada = sesion;
     this.mostrarModalDetalle = true;
@@ -102,7 +160,6 @@ export class ProgresoComponent implements OnDestroy {
     this.sesionSeleccionada = null;
   }
 
-  // Función para determinar el emoji dependiendo del nombre
   obtenerEmoji(nombre: string): string {
     const n = nombre.toLowerCase();
     if (n.includes('pierna') || n.includes('gluteo')) return '🦵';
