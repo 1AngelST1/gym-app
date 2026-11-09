@@ -3,6 +3,34 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  min-width: 320px;
+  background: #09090b;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+select,
+input {
+  touch-action: manipulation;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
 /* Ocultar scrollbar en Chrome, Safari y Opera */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
@@ -12,4 +40,10 @@
 .hide-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+@media (max-width: 640px) {
+  .max-w-md {
+    max-width: 100%;
+  }
 }

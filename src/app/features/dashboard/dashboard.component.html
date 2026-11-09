@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-8 pt-8 pb-4">
+<div class="dashboard-page flex flex-col gap-8 pt-8 pb-4">
   
   <!-- HOY -->
   <div>
@@ -74,8 +74,8 @@
 
 <!-- MODAL UNIFICADO (DETALLE / EDICIÓN) -->
 @if (rutinaSeleccionada) {
-  <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="cerrarDetalle()">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-t-[36px] sm:rounded-[36px] p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar flex flex-col" (click)="$event.stopPropagation()">
+  <div class="dashboard-modal-backdrop fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="cerrarDetalle()">
+    <div class="dashboard-modal bg-zinc-900 border border-zinc-800 rounded-t-[36px] sm:rounded-[36px] p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar flex flex-col" (click)="$event.stopPropagation()">
       <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-6 shrink-0"></div>
       <button (click)="cerrarDetalle()" class="absolute top-6 right-6 text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-800 rounded-full p-2 z-10 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>

@@ -1,0 +1,9 @@
+.login-page {
+  min-height: 100dvh;
+}
+
+@media (max-width: 420px) {
+  .login-page {
+    padding-inline: 1rem;
+  }
+}

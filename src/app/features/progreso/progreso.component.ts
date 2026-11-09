@@ -9,7 +9,8 @@ import { MapaMuscularComponent } from '../../shared/components/mapa-muscular/map
   selector: 'app-progreso',
   standalone: true,
   imports: [CommonModule, FormsModule, MapaMuscularComponent],
-  templateUrl: './progreso.component.html'
+  templateUrl: './progreso.component.html',
+  styleUrl: './progreso.component.css'
 })
 export class ProgresoComponent implements OnInit, OnDestroy {
   private firestore: Firestore = inject(Firestore);

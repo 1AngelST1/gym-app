@@ -5,9 +5,9 @@
   </div>
 }
 
-<div class="bg-zinc-950 min-h-screen text-white flex flex-col font-sans relative pb-20">
+<div class="app-shell bg-zinc-950 min-h-screen text-white flex flex-col font-sans relative pb-20">
   
-  <main class="flex-1 w-full max-w-md mx-auto p-4">
+  <main class="app-main flex-1 w-full max-w-md mx-auto p-4">
     <router-outlet></router-outlet>
   </main>
 
@@ -16,7 +16,7 @@
   }
 
   <div 
-    class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-zinc-900 border-t border-zinc-800 rounded-t-[32px] p-6 z-50 transition-transform duration-300 ease-out transform max-h-[85vh] overflow-y-auto flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.5)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+    class="app-routine-modal fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-zinc-900 border-t border-zinc-800 rounded-t-[32px] p-6 z-50 transition-transform duration-300 ease-out transform max-h-[85vh] overflow-y-auto flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.5)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
     [class.translate-y-full]="!modalAbierto"
     [class.translate-y-0]="modalAbierto">
     

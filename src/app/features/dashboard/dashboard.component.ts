@@ -10,7 +10,8 @@ import { Auth, onAuthStateChanged } from '@angular/fire/auth';
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './dashboard.component.html'
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnDestroy {
   private firestore: Firestore = inject(Firestore);

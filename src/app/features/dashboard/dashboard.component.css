@@ -1,0 +1,24 @@
+.dashboard-page {
+  width: min(100%, 56rem);
+  margin-inline: auto;
+}
+
+.dashboard-modal-backdrop {
+  overscroll-behavior: contain;
+}
+
+.dashboard-modal {
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 640px) {
+  .dashboard-page {
+    gap: 1.5rem;
+    padding-block: 1rem;
+  }
+
+  .dashboard-modal {
+    max-height: 92dvh;
+    padding: 1.25rem;
+  }
+}

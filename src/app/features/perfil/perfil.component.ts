@@ -10,7 +10,8 @@ import { AuthService } from '../../core/services/auth.service';
   selector: 'app-perfil',
   standalone: true,
   imports: [CommonModule, FormsModule], 
-  templateUrl: './perfil.component.html'
+  templateUrl: './perfil.component.html',
+  styleUrl: './perfil.component.css'
 })
 export class PerfilComponent implements OnInit, OnDestroy {
   private firestore: Firestore = inject(Firestore);

@@ -1,0 +1,23 @@
+.app-shell {
+  min-height: 100dvh;
+}
+
+.app-main {
+  padding-bottom: max(5rem, calc(5rem + env(safe-area-inset-bottom)));
+}
+
+.app-routine-modal {
+  padding-bottom: max(1.5rem, calc(1.5rem + env(safe-area-inset-bottom)));
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    padding-inline: 1rem;
+  }
+
+  .app-routine-modal {
+    max-height: 90dvh;
+    padding-inline: 1rem;
+    border-radius: 2rem 2rem 0 0;
+  }
+}

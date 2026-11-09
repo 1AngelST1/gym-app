@@ -1,0 +1,15 @@
+.progress-page {
+  width: min(100%, 56rem);
+  margin-inline: auto;
+}
+
+.grafica-volumen-scroll {
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 640px) {
+  .progress-page {
+    gap: 1.5rem;
+    padding-block: 1rem 5rem;
+  }
+}

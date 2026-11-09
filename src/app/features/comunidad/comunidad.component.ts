@@ -37,7 +37,8 @@ interface SolicitudAmistad {
   selector: 'app-comunidad',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './comunidad.component.html'
+  templateUrl: './comunidad.component.html',
+  styleUrl: './comunidad.component.css'
 })
 export class ComunidadComponent implements OnInit, OnDestroy {
   private readonly firestore = inject(Firestore);
