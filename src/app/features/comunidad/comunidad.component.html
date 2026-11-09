@@ -1,0 +1,193 @@
+<div class="flex flex-col gap-6 pt-8 pb-24 overflow-x-hidden">
+  <div class="flex justify-between items-end">
+    <h2 class="text-3xl font-black text-white tracking-tight">Comunidad</h2>
+    <button (click)="cambiarTab('amigos')" class="text-cyan-400 text-sm font-bold hover:text-cyan-300 transition-colors flex items-center gap-1.5 bg-cyan-950/20 border border-cyan-900/50 px-3 py-1.5 rounded-xl">
+      <span class="text-lg leading-none">+</span>
+      Añadir amigo
+    </button>
+  </div>
+
+  <div class="flex bg-zinc-900/80 rounded-2xl p-1 border border-zinc-800 backdrop-blur-sm">
+    <button (click)="cambiarTab('global')" class="flex-1 font-black py-3 rounded-xl text-xs uppercase tracking-widest transition-all duration-300"
+            [class.bg-zinc-800]="tabActiva === 'global'" [class.text-white]="tabActiva === 'global'"
+            [class.text-zinc-500]="tabActiva !== 'global'">
+      Global
+    </button>
+    <button (click)="cambiarTab('liga')" class="flex-1 font-black py-3 rounded-xl text-xs uppercase tracking-widest transition-all duration-300"
+            [class.bg-zinc-800]="tabActiva === 'liga'" [class.text-white]="tabActiva === 'liga'"
+            [class.text-zinc-500]="tabActiva !== 'liga'">
+      Liga
+    </button>
+    <button (click)="cambiarTab('amigos')" class="flex-1 font-black py-3 rounded-xl text-xs uppercase tracking-widest transition-all duration-300"
+            [class.bg-zinc-800]="tabActiva === 'amigos'" [class.text-white]="tabActiva === 'amigos'"
+            [class.text-zinc-500]="tabActiva !== 'amigos'">
+      Amigos
+    </button>
+  </div>
+
+  @if (mensaje) {
+    <p class="bg-cyan-950/40 border border-cyan-900/50 text-cyan-300 text-xs font-bold p-3 rounded-xl text-center">
+      {{ mensaje }}
+    </p>
+  }
+
+  @if (cargando) {
+    <div class="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 text-center text-zinc-500 text-sm font-bold">
+      Cargando comunidad...
+    </div>
+  } @else if (tabActiva === 'global') {
+    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-[32px] p-6 border border-zinc-700 shadow-xl text-center relative overflow-hidden">
+      <p class="text-[11px] font-black text-yellow-500 uppercase tracking-widest mb-1">Clasificación global</p>
+      <p class="text-zinc-400 text-xs font-bold mb-4">Ordenada por volumen total levantado</p>
+      <div class="w-20 h-20 mx-auto bg-zinc-900 border-4 border-yellow-600/50 rounded-full flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(202,138,4,0.25)]">
+        🏆
+      </div>
+    </div>
+
+    @if (rankingGlobal.length > 0) {
+      <div class="flex flex-col gap-3">
+        @for (user of rankingGlobal; track user.id) {
+          <div class="p-4 rounded-3xl border flex items-center justify-between transition-all"
+               [class.bg-zinc-800]="user.esUsuario" [class.border-cyan-700]="user.esUsuario"
+               [class.bg-zinc-900]="!user.esUsuario" [class.border-zinc-800]="!user.esUsuario">
+            <div class="flex items-center gap-4 min-w-0">
+              <span class="font-black text-lg w-4 text-center"
+                    [class.text-yellow-500]="user.posicion === 1"
+                    [class.text-zinc-300]="user.posicion === 2"
+                    [class.text-amber-700]="user.posicion === 3"
+                    [class.text-zinc-600]="user.posicion > 3">
+                {{ user.posicion }}
+              </span>
+              <div class="w-12 h-12 shrink-0 rounded-full flex items-center justify-center text-sm font-black uppercase"
+                   [class.bg-cyan-900]="user.esUsuario" [class.text-cyan-100]="user.esUsuario"
+                   [class.bg-zinc-800]="!user.esUsuario" [class.text-zinc-300]="!user.esUsuario">
+                {{ user.iniciales }}
+              </div>
+              <div class="min-w-0">
+                <p class="font-bold text-base truncate" [class.text-white]="user.esUsuario" [class.text-zinc-300]="!user.esUsuario">
+                  {{ user.nombre }}{{ user.esUsuario ? ' (Tú)' : '' }}
+                </p>
+                <p class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">
+                  {{ user.nivel }} · {{ user.entrenamientos }} entrenamientos
+                </p>
+              </div>
+            </div>
+            <div class="text-right shrink-0 ml-2">
+              <p class="font-black text-lg" [class.text-cyan-400]="user.esUsuario" [class.text-white]="!user.esUsuario">
+                {{ user.volumen | number:'1.0-0' }}
+              </p>
+              <p class="text-[9px] text-zinc-500 uppercase tracking-widest font-black">KG</p>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-zinc-950/50 border border-dashed border-zinc-800 rounded-3xl p-8 text-center">
+        <p class="text-zinc-500 font-bold text-sm">Todavía no hay perfiles públicos.</p>
+      </div>
+    }
+
+  } @else if (tabActiva === 'liga') {
+    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-[32px] p-6 border border-zinc-700 shadow-xl text-center relative overflow-hidden">
+      <p class="text-[11px] font-black text-yellow-500 uppercase tracking-widest mb-1">Liga {{ ligaActual }}</p>
+      <p class="text-zinc-400 text-xs font-bold mb-4">Temporada semanal · Mejores 50</p>
+      <div class="w-20 h-20 mx-auto bg-zinc-900 border-4 border-yellow-600/50 rounded-full flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(202,138,4,0.25)]">
+        🏆
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <div class="flex items-end justify-between">
+        <div>
+          <h3 class="text-xs font-black text-yellow-500 uppercase tracking-widest">Liga {{ ligaActual }}</h3>
+          <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Temporada semanal · Top 50</p>
+        </div>
+        <span class="text-[10px] text-zinc-500 font-bold">Volumen de temporada</span>
+      </div>
+
+      @for (user of rankingLiga; track user.id) {
+        <div class="p-4 rounded-3xl border flex items-center justify-between transition-all"
+             [class.bg-zinc-800]="user.esUsuario" [class.border-cyan-700]="user.esUsuario"
+             [class.bg-zinc-900]="!user.esUsuario" [class.border-zinc-800]="!user.esUsuario">
+          <div class="flex items-center gap-4 min-w-0">
+            <span class="font-black text-lg w-4 text-center"
+                  [class.text-yellow-500]="user.posicionLiga === 1"
+                  [class.text-zinc-300]="user.posicionLiga === 2"
+                  [class.text-amber-700]="user.posicionLiga === 3"
+                  [class.text-zinc-600]="user.posicionLiga > 3">
+              {{ user.posicionLiga }}
+            </span>
+            <div class="min-w-0">
+              <p class="font-bold text-sm truncate text-white">
+                {{ user.nombre }}{{ user.esUsuario ? ' (Tú)' : '' }}
+              </p>
+              <p class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">{{ user.entrenamientos }} entrenamientos</p>
+            </div>
+          </div>
+          <span class="text-cyan-400 font-black shrink-0 ml-2">{{ user.volumenTemporada | number:'1.0-0' }} KG</span>
+        </div>
+      } @empty {
+        <p class="text-zinc-500 text-sm text-center py-4">Aún no hay participantes en esta liga.</p>
+      }
+    </div>
+  } @else {
+    @if (solicitudesPendientes.length > 0) {
+      <div class="flex flex-col gap-3">
+        <h3 class="text-xs font-black text-zinc-500 uppercase tracking-widest">Solicitudes recibidas</h3>
+        @for (solicitud of solicitudesPendientes; track solicitud.id) {
+          <div class="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
+            <p class="text-white font-bold text-sm">{{ solicitud.emisorNombre }} quiere ser tu amigo</p>
+            <button (click)="aceptarSolicitud(solicitud)" class="bg-cyan-400 text-black rounded-xl px-3 py-2 text-xs font-black">
+              Aceptar
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="flex flex-col gap-3">
+      <h3 class="text-xs font-black text-zinc-500 uppercase tracking-widest">Buscar usuarios</h3>
+      <input [(ngModel)]="busqueda" type="search" placeholder="Buscar por nombre..."
+             class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-white text-sm font-bold focus:outline-none focus:border-cyan-500">
+      @for (user of usuariosFiltrados; track user.id) {
+        <div class="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-xs font-black text-zinc-300">
+              {{ user.iniciales }}
+            </div>
+            <div>
+              <p class="text-white font-bold text-sm">{{ user.nombre }}</p>
+              <p class="text-[10px] text-zinc-500 uppercase font-black">{{ user.nivel }}</p>
+            </div>
+          </div>
+          <button (click)="enviarSolicitud(user)" class="text-cyan-400 border border-cyan-900/50 rounded-xl px-3 py-2 text-xs font-black">
+            Añadir
+          </button>
+        </div>
+      } @empty {
+        <p class="text-zinc-500 text-sm text-center py-4">No hay usuarios para añadir.</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h3 class="text-xs font-black text-zinc-500 uppercase tracking-widest">Clasificación de amigos</h3>
+      @for (user of amigos; track user.id; let indice = $index) {
+        <div class="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="font-black w-4"
+                  [class.text-cyan-400]="user.esUsuario"
+                  [class.text-zinc-500]="!user.esUsuario">
+              {{ indice + 1 }}
+            </span>
+            <span class="text-white font-bold text-sm">
+              {{ user.nombre }}{{ user.esUsuario ? ' (Tú)' : '' }}
+            </span>
+          </div>
+          <span class="text-cyan-400 font-black">{{ user.volumen | number:'1.0-0' }} KG</span>
+        </div>
+      } @empty {
+        <p class="text-zinc-500 text-sm text-center py-4">Aún no tienes amigos agregados.</p>
+      }
+    </div>
+  }
+</div>

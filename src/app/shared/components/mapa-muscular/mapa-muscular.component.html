@@ -1,0 +1,115 @@
+<svg viewBox="0 0 200 400" class="w-full max-w-[260px] h-auto mx-auto drop-shadow-[0_0_15px_rgba(0,0,0,0.3)]">
+  
+  <!-- SILUETA BASE (CONTORNOS SIEMPRE VISIBLES) -->
+  <g class="fill-transparent stroke-zinc-500 stroke-[2px] stroke-linejoin-round stroke-linecap-round">
+     <circle cx="100" cy="40" r="22" />
+     <path d="M90 62 L110 62 L115 80 L85 80 Z" />
+     <path [attr.d]="genero === 'Masculino' ? 'M55 80 L145 80 L135 140 L65 140 Z' : 'M65 80 L135 80 L125 140 L75 140 Z'" />
+     <path [attr.d]="genero === 'Masculino' ? 'M65 140 L135 140 L125 210 L75 210 Z' : 'M75 140 L125 140 L135 210 L65 210 Z'" />
+     <path d="M45 80 L55 80 L65 110 L40 110 Z" />
+     <path d="M155 80 L145 80 L135 110 L160 110 Z" />
+     <path d="M40 110 L65 110 L45 160 L30 150 Z" />
+     <path d="M160 110 L135 110 L155 160 L170 150 Z" />
+     <path d="M30 150 L45 160 L30 225 L15 220 Z" />
+     <path d="M170 150 L155 160 L170 225 L185 220 Z" />
+     <path [attr.d]="genero === 'Masculino' ? 'M75 210 L100 210 L95 300 L65 300 Z' : 'M65 210 L100 210 L95 300 L60 300 Z'" />
+     <path [attr.d]="genero === 'Masculino' ? 'M100 210 L125 210 L135 300 L105 300 Z' : 'M100 210 L135 210 L140 300 L105 300 Z'" />
+     <path [attr.d]="genero === 'Masculino' ? 'M65 300 L95 300 L90 380 L70 380 Z' : 'M60 300 L95 300 L90 380 L65 380 Z'" />
+     <path [attr.d]="genero === 'Masculino' ? 'M105 300 L135 300 L130 380 L110 380 Z' : 'M105 300 L140 300 L135 380 L110 380 Z'" />
+  </g>
+
+  <!-- ============================================== -->
+  <!-- RELLENOS MUSCULARES (SEGÚN LA VISTA)           -->
+  <!-- ============================================== -->
+  
+  <!-- CUELLO Y ANTEBRAZOS (Visibles en ambos lados) -->
+  <g [class]="obtenerClasesMusculo(niveles.cuello)">
+     <path d="M90 62 L110 62 L115 80 L85 80 Z" />
+  </g>
+  <g [class]="obtenerClasesMusculo(niveles.antebrazo)">
+     <path d="M30 150 L45 160 L38 192 L23 187 Z" />
+     <path d="M170 150 L155 160 L162 192 L177 187 Z" />
+     <path d="M23 187 L38 192 L30 225 L15 220 Z" />
+     <path d="M177 187 L162 192 L170 225 L185 220 Z" />
+  </g>
+
+  @if (vista === 'frente') {
+    <!-- PECHO -->
+    <g [class]="obtenerClasesMusculo(niveles.pecho)">
+       <path [attr.d]="genero === 'Masculino' ? 'M55 82 L99 82 L98 138 L65 138 Z' : 'M65 82 L99 82 L98 138 L75 138 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M101 82 L145 82 L135 138 L102 138 Z' : 'M101 82 L135 82 L125 138 L102 138 Z'" />
+    </g>
+    <!-- ABDOMEN -->
+    <g [class]="obtenerClasesMusculo(niveles.abdomen)">
+       <path d="M75 143 L98 143 L98 163 L77 163 Z" />
+       <path d="M102 143 L125 143 L123 163 L102 163 Z" />
+       <path d="M77 167 L98 167 L98 187 L79 187 Z" />
+       <path d="M102 167 L123 167 L121 187 L102 187 Z" />
+       <path d="M79 191 L98 191 L96 208 L82 208 Z" />
+       <path d="M102 191 L121 191 L118 208 L102 208 Z" />
+    </g>
+    <!-- HOMBROS -->
+    <g [class]="obtenerClasesMusculo(niveles.hombros)">
+       <path d="M45 81 L56 81 L65 108 L42 108 Z" />
+       <path d="M155 81 L144 81 L135 108 L158 108 Z" />
+    </g>
+    <!-- BÍCEPS -->
+    <g [class]="obtenerClasesMusculo(niveles.biceps)">
+       <path d="M41 111 L64 111 L55 145 L35 153 Z" />
+       <path d="M159 111 L136 111 L145 145 L165 153 Z" />
+    </g>
+    <!-- TRÍCEPS LATERALES -->
+    <g [class]="obtenerClasesMusculo(niveles.triceps)">
+       <path d="M35 153 L55 145 L45 160 L30 150 Z" />
+       <path d="M165 153 L145 145 L155 160 L170 150 Z" />
+    </g>
+    <!-- CUÁDRICEPS -->
+    <g [class]="obtenerClasesMusculo(niveles.cuadricep)">
+       <path [attr.d]="genero === 'Masculino' ? 'M75 212 L98 212 L94 258 L66 258 Z' : 'M65 212 L98 212 L94 258 L61 258 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M102 212 L125 212 L134 258 L106 258 Z' : 'M102 212 L135 212 L139 258 L106 258 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M66 262 L94 262 L90 299 L70 299 Z' : 'M61 262 L94 262 L90 299 L65 299 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M106 262 L134 262 L130 299 L110 299 Z' : 'M106 262 L139 262 L135 299 L110 299 Z'" />
+    </g>
+    <!-- PANTORRILLAS -->
+    <g [class]="obtenerClasesMusculo(niveles.pantorrilla)">
+       <path [attr.d]="genero === 'Masculino' ? 'M70 304 L91 304 L87 345 L71 345 Z' : 'M65 304 L91 304 L87 345 L67 345 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M109 304 L130 304 L129 345 L113 345 Z' : 'M109 304 L135 304 L133 345 L113 345 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M71 349 L87 349 L90 380 L70 380 Z' : 'M67 349 L87 349 L90 380 L65 380 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M113 349 L129 349 L130 380 L110 380 Z' : 'M113 349 L133 349 L135 380 L110 380 Z'" />
+    </g>
+  } 
+  @else {
+    <!-- ESPALDA -->
+    <g [class]="obtenerClasesMusculo(niveles.espalda)">
+       <path [attr.d]="genero === 'Masculino' ? 'M56 82 L98 82 L98 137 L68 137 Z' : 'M66 82 L98 82 L98 137 L76 137 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M102 82 L144 82 L132 137 L102 137 Z' : 'M102 82 L134 82 L124 137 L102 137 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M68 141 L98 141 L96 178 L76 178 Z' : 'M76 141 L98 141 L98 178 L70 178 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M102 141 L132 141 L124 178 L104 178 Z' : 'M102 141 L124 141 L130 178 L102 178 Z'" />
+    </g>
+    <!-- GLÚTEOS -->
+    <g [class]="obtenerClasesMusculo(niveles.gluteo)">
+       <path [attr.d]="genero === 'Masculino' ? 'M76 182 L98 182 L98 210 L76 207 Z' : 'M71 182 L98 182 L98 210 L66 207 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M102 182 L124 182 L124 207 L102 210 Z' : 'M102 182 L129 182 L134 207 L102 210 Z'" />
+    </g>
+    <!-- HOMBROS (POSTERIOR) -->
+    <g [class]="obtenerClasesMusculo(niveles.hombros)">
+       <path d="M45 80 L55 80 L65 110 L40 110 Z" />
+       <path d="M155 80 L145 80 L135 110 L160 110 Z" />
+    </g>
+    <!-- TRÍCEPS -->
+    <g [class]="obtenerClasesMusculo(niveles.triceps)">
+       <path d="M40 111 L64 111 L55 145 L35 153 Z" />
+       <path d="M160 111 L136 111 L145 145 L165 153 Z" />
+    </g>
+    <!-- FEMORALES -->
+    <g [class]="obtenerClasesMusculo(niveles.femoral)">
+       <path [attr.d]="genero === 'Masculino' ? 'M75 210 L100 210 L95 300 L65 300 Z' : 'M65 210 L100 210 L95 300 L60 300 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M100 210 L125 210 L135 300 L105 300 Z' : 'M100 210 L135 210 L140 300 L105 300 Z'" />
+    </g>
+    <!-- PANTORRILLAS -->
+    <g [class]="obtenerClasesMusculo(niveles.pantorrilla)">
+       <path [attr.d]="genero === 'Masculino' ? 'M65 300 L95 300 L90 380 L70 380 Z' : 'M60 300 L95 300 L90 380 L65 380 Z'" />
+       <path [attr.d]="genero === 'Masculino' ? 'M105 300 L135 300 L130 380 L110 380 Z' : 'M105 300 L140 300 L135 380 L110 380 Z'" />
+    </g>
+  }
+</svg>
