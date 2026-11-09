@@ -1,79 +1,160 @@
-import { Component, inject, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, Injector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
+import { FormsModule } from '@angular/forms'; 
+import { Firestore, collection, onSnapshot, query, orderBy, getDocs, doc, getDoc, where } from '@angular/fire/firestore';
+import { AuthService } from '../../core/services/auth.service';
 import { MapaMuscularComponent } from '../../shared/components/mapa-muscular/mapa-muscular.component';
 
 @Component({
   selector: 'app-progreso',
   standalone: true,
-  imports: [CommonModule, MapaMuscularComponent],
+  imports: [CommonModule, FormsModule, MapaMuscularComponent],
   templateUrl: './progreso.component.html'
 })
-export class ProgresoComponent implements OnDestroy {
+export class ProgresoComponent implements OnInit, OnDestroy {
   private firestore: Firestore = inject(Firestore);
+  private authService: AuthService = inject(AuthService);
+  private injector = inject(Injector);
+
   private historialCol = collection(this.firestore, 'historial');
   private listenerHistorial: any;
 
-  // Variables Gamificación
   nivelGeneral = 'Novato';
-  genero: 'masculino' | 'femenino' = 'masculino';
+  genero: string = 'Masculino';
+  generoVisual: string = 'Masculino'; 
+  vistaCuerpo: 'frente' | 'espalda' = 'frente';
   
   niveles = {
-    pecho: 'base',
-    abdomen: 'base',
-    brazoIzq: 'base',
-    brazoDer: 'base',
-    piernas: 'base'
+    cuello: 'base', pecho: 'base', espalda: 'base', hombros: 'base',
+    biceps: 'base', triceps: 'base', antebrazo: 'base', abdomen: 'base',
+    cuadricep: 'base', femoral: 'base', gluteo: 'base', pantorrilla: 'base'
   };
 
-  // Variables Interfaz
   historialReciente: any[] = [];
   mostrarModalDetalle = false;
   sesionSeleccionada: any = null;
   
-  // Variables Gráfica de Barras Dinámica
-  datosGrafica: { diaLetra: string, fechaStr: string, volumenKg: number, porcentaje: number, hoy: boolean }[] = [];
+  periodoActivo: 'semana' | 'mes' = 'semana';
+  historialCompletoGlobal: any[] = []; 
+  
+  slideGrafica: number = 0; 
+  datosGraficaVolumen: { diaLetra: string, fechaStr: string, volumenKg: number, porcentaje: number, hoy: boolean }[] = [];
+  datosGraficaPeso: any[] = []; 
+  medidasVisiblesPeso: any[] = []; 
+  puntosSvg = '';
 
-  constructor() {
-    this.listenerHistorial = onSnapshot(this.historialCol, (snapshot) => {
-      let contadorPecho = 0;
-      let contadorPierna = 0;
-      let contadorBrazo = 0;
-      let historialCompleto: any[] = [];
+  ngOnInit() {
+    runInInjectionContext(this.injector, () => {
+      this.cargarDatosUsuario();
+      this.iniciarListenerHistorial();
+      this.cargarHistorialMedidas();
+    });
+  }
 
-      snapshot.forEach((doc) => {
-        const sesion: any = { id: doc.id, ...doc.data() };
-        if (sesion['estado'] === 'completado') {
-          historialCompleto.push(sesion);
-          const nombre = sesion.rutinaNombre?.toLowerCase() || '';
-          const setsTotales = sesion.totalSets || 0;
+  async cargarDatosUsuario() {
+    const userId = this.authService.currentUserUid;
+    if (!userId) return;
 
-          if (nombre.includes('pecho') || nombre.includes('empuje')) contadorPecho += setsTotales;
-          if (nombre.includes('pierna') || nombre.includes('gluteo')) contadorPierna += setsTotales;
-          if (nombre.includes('brazo') || nombre.includes('bicep') || nombre.includes('tricep') || nombre.includes('hombro')) contadorBrazo += setsTotales;
-        }
+    try {
+      const snap = await runInInjectionContext(this.injector, () => {
+        return getDoc(doc(this.firestore, `usuarios/${userId}`));
+      });
+      
+      if (snap.exists()) {
+        const data = snap.data();
+        this.genero = data['genero'] || 'Masculino';
+        this.generoVisual = this.genero === 'Neutral' ? 'Masculino' : this.genero;
+      }
+    } catch (error) {
+      console.error('Error cargando perfil:', error);
+    }
+  }
+
+  async cargarHistorialMedidas() {
+    const userId = this.authService.currentUserUid;
+    if (!userId) return;
+
+    try {
+      const snapshot = await runInInjectionContext(this.injector, () => {
+        const q = query(collection(this.firestore, `usuarios/${userId}/medidas`), orderBy('fechaIso', 'asc'));
+        return getDocs(q);
+      });
+      
+      this.datosGraficaPeso = [];
+      snapshot.forEach(d => {
+        this.datosGraficaPeso.push({ id: d.id, ...d.data() });
       });
 
-      // 1. Calcular Nivel General
-      const totalEntrenamientos = historialCompleto.length;
-      if (totalEntrenamientos < 5) this.nivelGeneral = 'Novato';
-      else if (totalEntrenamientos < 15) this.nivelGeneral = 'Principiante';
-      else if (totalEntrenamientos < 30) this.nivelGeneral = 'Intermedio';
-      else if (totalEntrenamientos < 50) this.nivelGeneral = 'Avanzado';
-      else this.nivelGeneral = 'Élite';
+      this.prepararGraficaPuntos();
+    } catch (error) {
+      console.error('Error cargando medidas:', error);
+    }
+  }
 
-      // 2. Calcular Niveles Musculares
-      this.niveles.pecho = this.calcularNivelMusculo(contadorPecho);
-      this.niveles.piernas = this.calcularNivelMusculo(contadorPierna);
-      this.niveles.brazoIzq = this.calcularNivelMusculo(contadorBrazo);
-      this.niveles.brazoDer = this.calcularNivelMusculo(contadorBrazo);
+  iniciarListenerHistorial() {
+    const userId = this.authService.currentUserUid;
+    if (!userId) return;
 
-      // 3. Obtener Historial Reciente (Últimos 2)
-      historialCompleto.sort((a, b) => new Date(b.fechaCompleta).getTime() - new Date(a.fechaCompleta).getTime());
-      this.historialReciente = historialCompleto.slice(0, 2);
+    runInInjectionContext(this.injector, () => {
+      const q = query(this.historialCol, where('userId', '==', userId));
+      
+      this.listenerHistorial = onSnapshot(q, (snapshot) => {
+        let cPecho = 0, cEspalda = 0, cHombro = 0, cBicep = 0, cTricep = 0, cCuello = 0, cAntebrazo = 0;
+        let cCuad = 0, cFemoral = 0, cGluteo = 0, cPantorrilla = 0, cAbdomen = 0;
+        
+        let historialCompleto: any[] = [];
 
-      // 4. Construir Gráfica Dinámica (Últimos 7 días)
-      this.construirGrafica(historialCompleto);
+        snapshot.forEach((d) => {
+          const sesion: any = { id: d.id, ...d.data() };
+          if (sesion['estado'] === 'completado') {
+            historialCompleto.push(sesion);
+            
+            if (sesion.ejercicios) {
+              sesion.ejercicios.forEach((ej: any) => {
+                const nombre = ej.nombre?.toLowerCase() || '';
+                let sets = 0;
+                ej.setsActivos?.forEach((s:any) => { if(s.completado) sets++; });
+
+                if (nombre.includes('pecho') || nombre.includes('press banca')) cPecho += sets;
+                else if (nombre.includes('espalda') || nombre.includes('jalon') || nombre.includes('remo')) cEspalda += sets;
+                else if (nombre.includes('hombro') || nombre.includes('militar') || nombre.includes('lateral')) cHombro += sets;
+                else if (nombre.includes('bicep') || nombre.includes('curl')) cBicep += sets;
+                else if (nombre.includes('tricep') || nombre.includes('frances') || nombre.includes('extension tricep')) cTricep += sets;
+                else if (nombre.includes('antebrazo') || nombre.includes('martillo')) cAntebrazo += sets;
+                else if (nombre.includes('cuello') || nombre.includes('encogimiento') || nombre.includes('trapecio')) cCuello += sets;
+                else if (nombre.includes('cuadricep') || nombre.includes('sentadilla') || nombre.includes('prensa')) cCuad += sets;
+                else if (nombre.includes('femoral') || nombre.includes('curl pierna') || nombre.includes('peso muerto')) cFemoral += sets;
+                else if (nombre.includes('pantorrilla') || nombre.includes('elevacion') || nombre.includes('gemelo')) cPantorrilla += sets;
+                else if (nombre.includes('gluteo') || nombre.includes('hip thrust')) cGluteo += sets;
+                else if (nombre.includes('abdomen') || nombre.includes('crunch')) cAbdomen += sets;
+              });
+            }
+          }
+        });
+
+        const totalEntrenamientos = historialCompleto.length;
+        if (totalEntrenamientos < 5) this.nivelGeneral = 'Novato';
+        else if (totalEntrenamientos < 15) this.nivelGeneral = 'Principiante';
+        else if (totalEntrenamientos < 30) this.nivelGeneral = 'Intermedio';
+        else if (totalEntrenamientos < 50) this.nivelGeneral = 'Avanzado';
+        else this.nivelGeneral = 'Élite';
+
+        this.niveles = {
+          cuello: this.calcularNivelMusculo(cCuello), pecho: this.calcularNivelMusculo(cPecho),
+          espalda: this.calcularNivelMusculo(cEspalda), hombros: this.calcularNivelMusculo(cHombro),
+          biceps: this.calcularNivelMusculo(cBicep), triceps: this.calcularNivelMusculo(cTricep),
+          antebrazo: this.calcularNivelMusculo(cAntebrazo), abdomen: this.calcularNivelMusculo(cAbdomen),
+          cuadricep: this.calcularNivelMusculo(cCuad), femoral: this.calcularNivelMusculo(cFemoral),
+          gluteo: this.calcularNivelMusculo(cGluteo), pantorrilla: this.calcularNivelMusculo(cPantorrilla)
+        };
+
+        historialCompleto.sort((a, b) => new Date(b.fechaCompleta).getTime() - new Date(a.fechaCompleta).getTime());
+        
+        this.historialCompletoGlobal = historialCompleto; 
+        this.historialReciente = historialCompleto.slice(0, 2);
+        
+        this.actualizarGraficas();
+      });
     });
   }
 
@@ -89,81 +170,139 @@ export class ProgresoComponent implements OnDestroy {
     return 'base';
   }
 
-  obtenerClasesMusculo(nivel: string): string {
-    const clasesBase = 'stroke-[0.5] transition-colors cursor-pointer duration-500 ';
-    switch (nivel) {
-      case 'diamante': return clasesBase + 'fill-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)] stroke-cyan-200 hover:fill-cyan-300';
-      case 'oro': return clasesBase + 'fill-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)] stroke-yellow-200 hover:fill-yellow-400';
-      case 'plata': return clasesBase + 'fill-zinc-300 stroke-white hover:fill-white';
-      case 'cobre': return clasesBase + 'fill-orange-700 stroke-orange-400 hover:fill-orange-600';
-      default: return 'fill-zinc-800 stroke-zinc-700 stroke-1 hover:fill-zinc-700 transition-colors cursor-pointer';
-    }
+  actualizarGraficas() {
+    this.construirGraficaVolumen();
+    this.prepararGraficaPuntos();
+
+    setTimeout(() => {
+      const hoyIndex = this.datosGraficaVolumen.findIndex(d => d.hoy);
+      if (hoyIndex !== -1) {
+        const contenedor = document.querySelector('.grafica-volumen-scroll');
+        if (contenedor && contenedor.children[hoyIndex]) {
+           contenedor.children[hoyIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }
+    }, 100);
   }
 
-  construirGrafica(historial: any[]) {
-    this.datosGrafica = [];
+ construirGraficaVolumen() {
+    this.datosGraficaVolumen = [];
     const diasSemanaNombres = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
     let volumenMaximo = 0;
+    
+    let fechasAMostrar: Date[] = [];
 
-    // Generar los últimos 7 días hacia atrás
-    for (let i = 6; i >= 0; i--) {
-      const fecha = new Date();
-      fecha.setDate(fecha.getDate() - i);
+    if (this.periodoActivo === 'semana') {
+      for (let i = 6; i >= 0; i--) {
+        const f = new Date();
+        f.setDate(f.getDate() - i);
+        fechasAMostrar.push(f);
+      }
+    } else {
+      const hoy = new Date();
+      const año = hoy.getFullYear();
+      const mes = hoy.getMonth();
+      const diasEnMes = new Date(año, mes + 1, 0).getDate(); 
+      for (let i = 1; i <= diasEnMes; i++) {
+        fechasAMostrar.push(new Date(año, mes, i));
+      }
+    }
+
+    const hoyStr = new Date().toLocaleDateString('es-MX');
+
+    fechasAMostrar.forEach(fecha => {
       const fechaStr = fecha.toLocaleDateString('es-MX');
-      const diaLetra = diasSemanaNombres[fecha.getDay()];
       
-      // Buscar si entrenaste ese día y sumar volumen (kg x reps)
+      const diaLetra = this.periodoActivo === 'semana' 
+        ? diasSemanaNombres[fecha.getDay()] 
+        : fecha.getDate().toString();
+      
       let volumenDia = 0;
-      const sesionesDelDia = historial.filter(h => h.fechaCorta === fechaStr);
       
-      sesionesDelDia.forEach(sesion => {
-        if (sesion.ejercicios) {
-          sesion.ejercicios.forEach((ej: any) => {
-            ej.setsActivos.forEach((set: any) => {
-              if (set.completado && set.kg && set.reps) {
-                volumenDia += (set.kg * set.reps);
-              }
+      if (this.historialCompletoGlobal && this.historialCompletoGlobal.length > 0) {
+        const sesionesDelDia = this.historialCompletoGlobal.filter(h => h.fechaCorta === fechaStr);
+        sesionesDelDia.forEach(sesion => {
+          if (sesion.ejercicios) {
+            sesion.ejercicios.forEach((ej: any) => {
+              ej.setsActivos?.forEach((set: any) => {
+                if (set.completado && set.kg && set.reps) volumenDia += (set.kg * set.reps);
+              });
             });
-          });
-        }
-      });
+          }
+        });
+      }
 
       if (volumenDia > volumenMaximo) volumenMaximo = volumenDia;
 
-      this.datosGrafica.push({
-        diaLetra: diaLetra,
-        fechaStr: fechaStr,
-        volumenKg: volumenDia,
+      this.datosGraficaVolumen.push({ 
+        diaLetra, 
+        fechaStr, 
+        volumenKg: volumenDia, 
         porcentaje: 0, 
-        hoy: i === 0 
+        hoy: fechaStr === hoyStr
       });
-    }
+    });
 
-    // Calcular el porcentaje de altura para la gráfica
-    this.datosGrafica.forEach(dia => {
-      // Damos un 10% mínimo visual si hay volumen pero es muy bajo, o 0 si no entrenó
-      dia.porcentaje = dia.volumenKg > 0 ? Math.max((dia.volumenKg / volumenMaximo) * 100, 10) : 0;
+    this.datosGraficaVolumen.forEach(dia => {
+      if (volumenMaximo > 0 && dia.volumenKg > 0) {
+        dia.porcentaje = Math.max((dia.volumenKg / volumenMaximo) * 100, 10);
+      } else {
+        dia.porcentaje = 0;
+      }
     });
   }
+  
+  prepararGraficaPuntos() {
+    this.medidasVisiblesPeso = [];
+    this.puntosSvg = '';
 
-  cambiarGenero() {
-    this.genero = this.genero === 'masculino' ? 'femenino' : 'masculino';
+    if (!this.datosGraficaPeso || this.datosGraficaPeso.length === 0) return;
+    
+    let fechaLimite = new Date();
+    if (this.periodoActivo === 'semana') {
+      fechaLimite.setDate(fechaLimite.getDate() - 7);
+    } else {
+      fechaLimite = new Date(new Date().getFullYear(), new Date().getMonth(), 1); 
+    }
+
+    const medidasFiltradas = this.datosGraficaPeso.filter(m => new Date(m.fechaIso) >= fechaLimite);
+    
+    let ultimos = medidasFiltradas.length > 0 ? medidasFiltradas : this.datosGraficaPeso.slice(-2);
+    
+    if (ultimos.length === 0) return;
+
+    if (ultimos.length > 15) ultimos = ultimos.slice(-15);
+    
+    this.medidasVisiblesPeso = ultimos;
+
+    const pesos = ultimos.map(m => m.peso);
+    const maxPeso = Math.max(...pesos) + 5;
+    const minPeso = Math.max(Math.min(...pesos) - 5, 0);
+    const rango = maxPeso - minPeso || 1;
+
+    let puntos = '';
+    const widthStep = 300 / (ultimos.length > 1 ? ultimos.length - 1 : 1);
+    
+    ultimos.forEach((medida, index) => {
+      const x = index * widthStep;
+      const y = 120 - (((medida.peso - minPeso) / rango) * 100); 
+      medida.svgX = x;
+      medida.svgY = y;
+      puntos += `${x},${y} `;
+    });
+    this.puntosSvg = puntos.trim();
   }
 
-  abrirDetalle(sesion: any) {
-    this.sesionSeleccionada = sesion;
-    this.mostrarModalDetalle = true;
-  }
-
-  cerrarDetalle() {
-    this.mostrarModalDetalle = false;
-    this.sesionSeleccionada = null;
-  }
+  siguienteGrafica() { this.slideGrafica = this.slideGrafica === 0 ? 1 : 0; }
+  girarCuerpo() { this.vistaCuerpo = this.vistaCuerpo === 'frente' ? 'espalda' : 'frente'; }
+  cambiarFormaCuerpo() { this.generoVisual = this.generoVisual === 'Masculino' ? 'Femenino' : 'Masculino'; }
+  abrirDetalle(sesion: any) { this.sesionSeleccionada = sesion; this.mostrarModalDetalle = true; }
+  cerrarDetalle() { this.mostrarModalDetalle = false; this.sesionSeleccionada = null; }
 
   obtenerEmoji(nombre: string): string {
     const n = nombre.toLowerCase();
-    if (n.includes('pierna') || n.includes('gluteo')) return '🦵';
-    if (n.includes('espalda')) return '🦍';
+    if (n.includes('pierna') || n.includes('gluteo') || n.includes('cuadricep')) return '🦵';
+    if (n.includes('espalda') || n.includes('remo')) return '🦍';
     return '💪';
   }
 }

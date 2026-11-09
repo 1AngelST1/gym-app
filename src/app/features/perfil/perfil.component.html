@@ -22,6 +22,11 @@
         <h3 class="text-xl font-bold text-white truncate max-w-[200px]">{{ perfilUsuario.nombre || 'Usuario' }}</h3>
         <div class="flex flex-wrap gap-2 mt-2">
           <span class="bg-zinc-800 text-zinc-300 text-[10px] px-2 py-1 rounded-md uppercase font-bold tracking-wider">{{ perfilUsuario.nivel }}</span>
+          
+          @if (perfilUsuario.genero && perfilUsuario.genero !== 'Neutral') {
+            <span class="bg-zinc-800 text-cyan-400 text-[10px] px-2 py-1 rounded-md uppercase font-bold tracking-wider">{{ perfilUsuario.genero }}</span>
+          }
+          
           @if (perfilUsuario.edad) {
             <span class="bg-zinc-800 text-cyan-400 text-[10px] px-2 py-1 rounded-md uppercase font-bold tracking-wider">{{ perfilUsuario.edad }} AÑOS</span>
           }
@@ -42,14 +47,22 @@
           <input type="text" [(ngModel)]="perfilUsuario.nombre" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors">
         </div>
         
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Edad</label>
-            <input type="number" [(ngModel)]="perfilUsuario.edad" min="0" placeholder="Opcional" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors">
+            <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Edad</label>
+            <input type="number" [(ngModel)]="perfilUsuario.edad" min="0" placeholder="--" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors">
           </div>
           <div>
-            <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Peso (KG)</label>
-            <input type="number" [(ngModel)]="perfilUsuario.peso" min="0" placeholder="Opcional" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors">
+            <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Peso (KG)</label>
+            <input type="number" [(ngModel)]="perfilUsuario.peso" min="0" placeholder="--" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Cuerpo</label>
+            <select [(ngModel)]="perfilUsuario.genero" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer text-sm">
+              <option value="Masculino">Hombre</option>
+              <option value="Femenino">Mujer</option>
+              <option value="Neutral">Omitir</option>
+            </select>
           </div>
         </div>
 
@@ -57,7 +70,7 @@
           <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           <div>
             <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Nivel Actual: <span class="text-white">{{ perfilUsuario.nivel }}</span></p>
-            <p class="text-[9px] text-zinc-500 mt-0.5">Calculado automáticamente por tus kilos totales levantados.</p>
+            <p class="text-[9px] text-zinc-500 mt-0.5">Calculado por tus kilos totales.</p>
           </div>
         </div>
 
@@ -259,7 +272,7 @@
       <div class="grid grid-cols-2 gap-3 mb-4">
         <div>
           <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Peso (KG)</label>
-          <input type="number" [(ngModel)]="nuevaMedida.peso" min="0" placeholder="Opcional" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors">
+          <input type="number" [(ngModel)]="nuevaMedida.peso" min="0" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 transition-colors">
         </div>
         <div>
           <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Pecho (CM)</label>
@@ -325,14 +338,14 @@
 @if (mostrarModalConfirmacion) {
   <div class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex items-center justify-center p-4">
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center relative overflow-hidden">
-      <div class="w-20 h-20 bg-cyan-950/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-900/50">
-        <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      <div class="w-20 h-20 bg-red-950/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-900/50">
+        <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
       </div>
       <h3 class="text-xl font-black text-white uppercase tracking-tight mb-2">¿Eliminar Entrenamiento?</h3>
       <p class="text-zinc-400 text-sm font-medium mb-8">Esta acción no se puede deshacer y los minutos se recalcularán automáticamente.</p>
       <div class="flex gap-3">
         <button (click)="cerrarModalConfirmacion()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest p-4 rounded-xl transition-colors border border-zinc-700">Cancelar</button>
-        <button (click)="confirmarEliminacion()" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase tracking-widest p-4 rounded-xl transition-colors">Sí, Eliminar</button>
+        <button (click)="confirmarEliminacion()" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase tracking-widest p-4 rounded-xl transition-colors shadow-lg shadow-cyan-500/20">Sí, Eliminar</button>
       </div>
     </div>
   </div>
@@ -344,14 +357,14 @@
 @if (mostrarModalConfirmacionMedida) {
   <div class="fixed inset-0 bg-black/90 backdrop-blur-md z-[80] flex items-center justify-center p-4">
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center relative overflow-hidden animate-in fade-in zoom-in duration-200">
-      <div class="w-20 h-20 bg-cyan-950/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-900/50">
-        <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      <div class="w-20 h-20 bg-red-950/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-900/50">
+        <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
       </div>
       <h3 class="text-xl font-black text-white uppercase tracking-tight mb-2">¿Eliminar Medida?</h3>
       <p class="text-zinc-400 text-sm font-medium mb-8">Esta acción no se puede deshacer y se borrará de tu historial físico.</p>
       <div class="flex gap-3">
         <button (click)="cerrarModalConfirmacionMedida()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest p-4 rounded-xl transition-colors border border-zinc-700">Cancelar</button>
-        <button (click)="confirmarEliminacionMedida()" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase tracking-widest p-4 rounded-xl transition-colors">Sí, Eliminar</button>
+        <button (click)="confirmarEliminacionMedida()" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase tracking-widest p-4 rounded-xl transition-colors shadow-lg shadow-cyan-500/20">Sí, Eliminar</button>
       </div>
     </div>
   </div>
@@ -369,8 +382,8 @@
           <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
         </div>
       } @else {
-        <div class="w-20 h-20 bg-cyan-950/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-900/50">
-          <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <div class="w-20 h-20 bg-red-950/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-900/50">
+          <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
         </div>
       }
 

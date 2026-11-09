@@ -8,8 +8,13 @@ import { CommonModule } from '@angular/common';
   templateUrl: './mapa-muscular.component.html'
 })
 export class MapaMuscularComponent {
-  @Input() niveles: any;
-  @Input() genero: string = 'masculino';
+  @Input() niveles: any = {
+    cuello: 'base', pecho: 'base', espalda: 'base', hombros: 'base',
+    biceps: 'base', triceps: 'base', antebrazo: 'base', abdomen: 'base',
+    cuadricep: 'base', femoral: 'base', gluteo: 'base', pantorrilla: 'base'
+  };
+  @Input() genero: string = 'Masculino';
+  @Input() vista: 'frente' | 'espalda' = 'frente';
 
   obtenerClasesMusculo(nivel: string): string {
     const clasesBase = 'cursor-pointer transition-all duration-300 stroke-[2px] ';
@@ -18,8 +23,6 @@ export class MapaMuscularComponent {
       case 'oro': return clasesBase + 'fill-yellow-500/80 stroke-yellow-300 drop-shadow-[0_0_12px_rgba(234,179,8,0.6)] hover:fill-yellow-400';
       case 'plata': return clasesBase + 'fill-zinc-300/80 stroke-white hover:fill-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]';
       case 'cobre': return clasesBase + 'fill-orange-600/80 stroke-orange-400 drop-shadow-[0_0_8px_rgba(234,88,12,0.5)] hover:fill-orange-500';
-      
-      // Estado base transparente (plano arquitectónico)
       default: return clasesBase + 'fill-transparent stroke-transparent hover:fill-zinc-700/30';
     }
   }

@@ -34,7 +34,8 @@ export class PerfilComponent implements OnInit, OnDestroy {
     nivel: 'Principiante',
     edad: null as number | null,
     peso: null as number | null,
-    pesoMeta: null as number | null 
+    pesoMeta: null as number | null,
+    genero: 'neutral'
   };
   modoEdicionPerfil = false;
 
@@ -90,17 +91,42 @@ export class PerfilComponent implements OnInit, OnDestroy {
         if (docSnap.exists()) {
           this.perfilUsuario = { ...this.perfilUsuario, ...docSnap.data() };
         } else {
+          // 🔴 Generar nombre por defecto basado en el correo electrónico si es nuevo usuario
+          let nombreDefault = 'Usuario';
+          const email = (this.authService as any).currentUserEmail || (this.authService as any).user?.email || '';
+          if (email) {
+            const alias = email.split('@')[0];
+            if (alias) {
+              // Toma los primeros 3 caracteres (ej. angel -> ang, a1a2 -> a1a, soporta puntos y guiones bajos)
+              nombreDefault = alias.substring(0, 3);
+            }
+          }
+
+          this.perfilUsuario.nombre = nombreDefault;
           await setDoc(userRef, this.perfilUsuario);
         }
       });
     }
   }
 
-async guardarPerfilUsuario() {
+  async guardarPerfilUsuario() {
     const userId = this.authService.currentUserUid;
     if (userId) {
+      // 🔴 BLOQUEAR NÚMEROS NEGATIVOS
+      if (
+        (this.perfilUsuario.edad !== null && this.perfilUsuario.edad < 0) ||
+        (this.perfilUsuario.peso !== null && this.perfilUsuario.peso < 0) ||
+        (this.perfilUsuario.pesoMeta !== null && this.perfilUsuario.pesoMeta < 0)
+      ) {
+        this.mostrarNotificacion("No se aceptan números negativos", "error");
+        return; // Detenemos el guardado
+      }
+
       try {
-        // Envolvemos y retornamos el updateDoc desde el contexto seguro
+        if (!this.perfilUsuario.nombre || this.perfilUsuario.nombre.trim() === '') {
+          this.perfilUsuario.nombre = 'Usuario';
+        }
+
         await runInInjectionContext(this.injector, () => {
            const userRef = doc(this.firestore, `usuarios/${userId}`);
            return updateDoc(userRef, this.perfilUsuario);
@@ -240,7 +266,7 @@ async guardarPerfilUsuario() {
     this.nombreRutinaABorrar = null;
   }
 
- async confirmarEliminacion() {
+  async confirmarEliminacion() {
     if (!this.idSesionABorrar || !this.nombreRutinaABorrar) return;
 
     try {
@@ -248,12 +274,10 @@ async guardarPerfilUsuario() {
       const idTarget = this.idSesionABorrar;
       const nombreTarget = this.nombreRutinaABorrar;
       
-      // 1. Borramos el documento protegiendo el deleteDoc y doc con el inyector
       await runInInjectionContext(this.injector, () => {
         return deleteDoc(doc(this.historialCol, idTarget));
       });
 
-      // 2. Protegemos también la creación de las consultas (query y where)
       const { qHistorial, qRutina } = runInInjectionContext(this.injector, () => {
         return {
           qHistorial: query(
@@ -270,7 +294,6 @@ async guardarPerfilUsuario() {
         };
       });
 
-      // 3. Obtenemos los documentos protegiendo el getDocs
       const docs = await runInInjectionContext(this.injector, () => {
         return getDocs(qHistorial);
       });
@@ -288,7 +311,6 @@ async guardarPerfilUsuario() {
         nuevosMinutos = Math.ceil(ultimoEntrenamientoVivo.duracionSegundos / 60);
       }
 
-      // 4. Actualizamos la rutina protegiendo el getDocs y updateDoc
       const rutinasSnap = await runInInjectionContext(this.injector, () => {
         return getDocs(qRutina);
       });
@@ -310,6 +332,7 @@ async guardarPerfilUsuario() {
       this.mostrarNotificacion("Error al eliminar", "error");
     }
   }
+
   // ==========================================
   // LÓGICA DE METAS Y MEDIDAS CORPORALES
   // ==========================================
@@ -344,17 +367,30 @@ async guardarPerfilUsuario() {
     }
   }
 
-  async guardarMedida() {
+ async guardarMedida() {
     const userId = this.authService.currentUserUid;
     if (!userId) return;
 
-    if (!this.nuevaMedida.peso) {
-      this.mostrarNotificacion("Ingresa tu peso actual", "error");
+    // 🔴 VALIDAR PESO PRINCIPAL
+    if (!this.nuevaMedida.peso || this.nuevaMedida.peso <= 0) {
+      this.mostrarNotificacion("Ingresa un peso actual válido", "error");
       return;
+    }
+
+    // 🔴 BLOQUEAR MEDIDAS NEGATIVAS
+    if (
+      (this.nuevaMedida.pecho !== null && this.nuevaMedida.pecho < 0) ||
+      (this.nuevaMedida.brazos !== null && this.nuevaMedida.brazos < 0) ||
+      (this.nuevaMedida.cintura !== null && this.nuevaMedida.cintura < 0) ||
+      (this.nuevaMedida.piernas !== null && this.nuevaMedida.piernas < 0)
+    ) {
+      this.mostrarNotificacion("Las medidas no pueden ser negativas", "error");
+      return; // Detenemos el guardado
     }
 
     try {
       const ahora = new Date();
+      // Los vacíos (null) se siguen guardando como 0, pero los negativos ya fueron bloqueados arriba
       const registro = {
         peso: this.nuevaMedida.peso,
         pecho: this.nuevaMedida.pecho || 0,
@@ -423,6 +459,12 @@ async guardarPerfilUsuario() {
   async guardarPesoMeta() {
     const userId = this.authService.currentUserUid;
     if (userId) {
+      // 🔴 BLOQUEAR META NEGATIVA
+      if (this.perfilUsuario.pesoMeta !== null && this.perfilUsuario.pesoMeta < 0) {
+        this.mostrarNotificacion("La meta no puede ser negativa", "error");
+        return; // Detenemos el guardado
+      }
+
       try {
         await runInInjectionContext(this.injector, async () => {
            const userRef = doc(this.firestore, `usuarios/${userId}`);
