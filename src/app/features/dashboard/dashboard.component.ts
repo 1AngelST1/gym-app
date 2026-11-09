@@ -1,7 +1,7 @@
 import { Component, inject, Injector, runInInjectionContext, NgZone, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
-import { Firestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, where, getDocs } from '@angular/fire/firestore';
+import { Firestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, where, getDocs, getDoc, setDoc } from '@angular/fire/firestore';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
@@ -534,17 +534,21 @@ export class DashboardComponent implements OnDestroy {
       this.resumenDatos = registro;
 
       // 🔴 BLINDAJE TOTAL: El contexto de inyección solo debe ejecutar funciones puras de Firestore
-      runInInjectionContext(this.injector, () => {
-        if (historialIdTarget) {
-          updateDoc(doc(this.historialCol, historialIdTarget), registro);
-        } else {
-          addDoc(this.historialCol, registro);
-        }
+      if (historialIdTarget) {
+        await runInInjectionContext(this.injector, () =>
+          updateDoc(doc(this.historialCol, historialIdTarget), registro)
+        );
+      } else {
+        await runInInjectionContext(this.injector, () => addDoc(this.historialCol, registro));
+      }
 
-        if (rutinaIdTarget) {
-          updateDoc(doc(this.rutinasCol, rutinaIdTarget), { duracion: minutosReales });
-        }
-      });
+      if (rutinaIdTarget) {
+        await runInInjectionContext(this.injector, () =>
+          updateDoc(doc(this.rutinasCol, rutinaIdTarget), { duracion: minutosReales })
+        );
+      }
+
+      await this.sincronizarEstadisticasComunidad();
       
       this.mostrarResumen = true;
     } catch (error) {
@@ -554,6 +558,75 @@ export class DashboardComponent implements OnDestroy {
     
     this.entrenamientoActivo = false;
     this.rutinaActiva = null;
+  }
+
+  private async sincronizarEstadisticasComunidad() {
+    const userId = this.authService.currentUserUid;
+    if (!userId) return;
+
+    const consulta = runInInjectionContext(this.injector, () =>
+      query(this.historialCol, where('userId', '==', userId))
+    );
+    const snapshot = await runInInjectionContext(this.injector, () => getDocs(consulta));
+    const perfilSnapshot = await runInInjectionContext(this.injector, () =>
+      getDoc(doc(this.firestore, `usuarios/${userId}`))
+    );
+    const perfilData = perfilSnapshot.exists() ? perfilSnapshot.data() : {};
+    const estadisticasActuales = perfilData['estadisticasComunidad'] ?? {};
+    const temporadaId = this.obtenerTemporadaId();
+    const inicioTemporada = this.obtenerInicioTemporada();
+    let volumenTotalKg = 0;
+    let volumenTemporadaKg = 0;
+    let entrenamientosCompletados = 0;
+
+    snapshot.forEach(documento => {
+      const sesion = documento.data();
+      if (sesion['estado'] !== 'completado') return;
+
+      entrenamientosCompletados++;
+      const fechaSesion = new Date(String(sesion['fechaCompleta'] ?? ''));
+      const esDeEstaTemporada = !Number.isNaN(fechaSesion.getTime()) && fechaSesion >= inicioTemporada;
+      const ejercicios = Array.isArray(sesion['ejercicios']) ? sesion['ejercicios'] : [];
+      let volumenSesionKg = 0;
+      ejercicios.forEach((ejercicio: any) => {
+        const sets = Array.isArray(ejercicio.setsActivos) ? ejercicio.setsActivos : [];
+        sets.forEach((set: any) => {
+          if (set.completado === true && Number(set.kg) >= 0 && Number(set.reps) > 0) {
+            volumenSesionKg += Number(set.kg) * Number(set.reps);
+          }
+        });
+      });
+      volumenTotalKg += volumenSesionKg;
+      if (esDeEstaTemporada) volumenTemporadaKg += volumenSesionKg;
+    });
+
+    await runInInjectionContext(this.injector, () => setDoc(
+      doc(this.firestore, `usuarios/${userId}`),
+      {
+        estadisticasComunidad: {
+          volumenTotalKg,
+          entrenamientosCompletados,
+          volumenTemporadaKg,
+          temporadaId,
+          ligaActual: estadisticasActuales['ligaActual'] ?? 'Bronce',
+          actualizadoEn: new Date().toISOString()
+        }
+      },
+      { merge: true }
+    ));
+  }
+
+  private obtenerInicioTemporada() {
+    const fecha = new Date();
+    const dia = fecha.getDay() || 7;
+    fecha.setHours(0, 0, 0, 0);
+    fecha.setDate(fecha.getDate() - dia + 1);
+    return fecha;
+  }
+
+  private obtenerTemporadaId() {
+    const inicio = this.obtenerInicioTemporada();
+    return `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}-${String(inicio.getDate()).padStart(2, '0')}`;
   }
 
   agregarEjercicioEnVivo() {

@@ -122,13 +122,14 @@ export class AppComponent {
       const rutinasRef = collection(this.firestore, 'rutinas');
       
       // 1. Fase de LECTURA: Buscamos duplicados SIN el contexto de inyección forzado
-      const consultaDia = query(
-        rutinasRef, 
-        where('dia', '==', this.nuevaRutina.dia),
-        where('userId', '==', userId)
-      );
-      
-      const resultados = await getDocs(consultaDia);
+      const resultados = await runInInjectionContext(this.injector, () => {
+        const consultaDia = query(
+          rutinasRef,
+          where('dia', '==', this.nuevaRutina.dia),
+          where('userId', '==', userId)
+        );
+        return getDocs(consultaDia);
+      });
       let existeDuplicado = false;
 
       resultados.forEach((documento) => {
@@ -153,11 +154,8 @@ export class AppComponent {
       };
 
       // 2. Fase de ESCRITURA: Envolvemos estrictamente el guardado (addDoc) en el contexto seguro
-      runInInjectionContext(this.injector, () => {
-        addDoc(rutinasRef, rutinaParaGuardar).then(() => {
-          console.log("✅ Rutina guardada perfectamente estructurada");
-        });
-      });
+      await runInInjectionContext(this.injector, () => addDoc(rutinasRef, rutinaParaGuardar));
+      console.log("✅ Rutina guardada perfectamente estructurada");
       
       this.cerrarModal();
 

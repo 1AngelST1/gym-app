@@ -324,6 +324,7 @@ export class PerfilComponent implements OnInit, OnDestroy {
         }
       }
 
+      await this.recalcularEstadisticasComunidad();
       this.cerrarModalConfirmacion();
       this.sesionSeleccionada = null; 
       this.mostrarNotificacion("Sesión Eliminada", "exito");
@@ -331,6 +332,55 @@ export class PerfilComponent implements OnInit, OnDestroy {
       console.error("Error al eliminar del historial:", error);
       this.mostrarNotificacion("Error al eliminar", "error");
     }
+  }
+
+  private async recalcularEstadisticasComunidad() {
+    const userId = this.authService.currentUserUid;
+    if (!userId) return;
+
+    const consulta = runInInjectionContext(this.injector, () =>
+      query(this.historialCol, where('userId', '==', userId))
+    );
+    const snapshot = await runInInjectionContext(this.injector, () => getDocs(consulta));
+    let volumenTotalKg = 0;
+    let volumenTemporadaKg = 0;
+    let entrenamientosCompletados = 0;
+    const inicioTemporada = new Date();
+    const dia = inicioTemporada.getDay() || 7;
+    inicioTemporada.setHours(0, 0, 0, 0);
+    inicioTemporada.setDate(inicioTemporada.getDate() - dia + 1);
+
+    snapshot.forEach(documento => {
+      const sesion = documento.data();
+      if (sesion['estado'] !== 'completado') return;
+      entrenamientosCompletados++;
+      const fechaSesion = new Date(String(sesion['fechaCompleta'] ?? ''));
+      const esDeEstaTemporada = !Number.isNaN(fechaSesion.getTime()) && fechaSesion >= inicioTemporada;
+      let volumenSesionKg = 0;
+
+      const ejercicios = Array.isArray(sesion['ejercicios']) ? sesion['ejercicios'] : [];
+      ejercicios.forEach((ejercicio: any) => {
+        const sets = Array.isArray(ejercicio.setsActivos) ? ejercicio.setsActivos : [];
+        sets.forEach((set: any) => {
+          const kg = Number(set.kg);
+          const reps = Number(set.reps);
+          if (set.completado === true && Number.isFinite(kg) && kg >= 0 && reps > 0) {
+            volumenSesionKg += kg * reps;
+          }
+        });
+      });
+      volumenTotalKg += volumenSesionKg;
+      if (esDeEstaTemporada) volumenTemporadaKg += volumenSesionKg;
+    });
+
+    await runInInjectionContext(this.injector, () => updateDoc(
+      doc(this.firestore, `usuarios/${userId}`),
+      {
+        'estadisticasComunidad.volumenTotalKg': volumenTotalKg,
+        'estadisticasComunidad.volumenTemporadaKg': volumenTemporadaKg,
+        'estadisticasComunidad.entrenamientosCompletados': entrenamientosCompletados
+      }
+    ));
   }
 
   // ==========================================
